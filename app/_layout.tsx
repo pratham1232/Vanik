@@ -17,8 +17,14 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
 import { CartProvider } from "@/context/CartContext";
+<<<<<<< Updated upstream
+=======
+import { CommunityProvider } from "@/context/CommunityContext";
+import { ChatProvider } from "@/context/ChatContext";
+>>>>>>> Stashed changes
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ThemedApp } from "@/components/ThemedApp";
+import AppIntro from "@/components/AppIntro";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,6 +37,7 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  const [showIntro, setShowIntro] = React.useState(true);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
@@ -48,11 +55,24 @@ export default function RootLayout() {
             <AuthProvider>
               <AppProvider>
                 <CartProvider>
+<<<<<<< Updated upstream
                   <GestureHandlerRootView style={{ flex: 1 }}>
                     <KeyboardProvider>
                       <ThemedApp />
                     </KeyboardProvider>
                   </GestureHandlerRootView>
+=======
+                  <CommunityProvider>
+                    <ChatProvider>
+                      <GestureHandlerRootView style={{ flex: 1 }}>
+                        <KeyboardProvider>
+                          <ThemedApp />
+                          {showIntro && <AppIntro onFinish={() => setShowIntro(false)} />}
+                        </KeyboardProvider>
+                      </GestureHandlerRootView>
+                    </ChatProvider>
+                  </CommunityProvider>
+>>>>>>> Stashed changes
                 </CartProvider>
               </AppProvider>
             </AuthProvider>

@@ -42,6 +42,8 @@ export default function CreateScreen() {
   const [price, setPrice] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [aiTyping, setAiTyping] = useState(false);
+  const [imageEnhanced, setImageEnhanced] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -63,6 +65,32 @@ export default function CreateScreen() {
         : `Your ${activeType} has been published successfully.`,
       [{ text: "OK", onPress: () => router.back() }]
     );
+  };
+
+  const handleMagicWrite = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAiTyping(true);
+    setCaption("");
+    const generatedText = "Discover pure elegance with our latest collection! ✨ Handcrafted with love and designed for everyday luxury. Perfect for any occasion. \n\n#VanikStyle #HandcraftedLuxury #MustHave";
+    
+    let i = 0;
+    const interval = setInterval(() => {
+      setCaption(generatedText.slice(0, i + 1));
+      i++;
+      if (i === generatedText.length) {
+        clearInterval(interval);
+        setAiTyping(false);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    }, 30);
+  };
+
+  const handleEnhance = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setImageEnhanced(true);
+    setTimeout(() => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }, 1500);
   };
 
   const availableTypes = CONTENT_TYPES.filter((t) => !t.sellerOnly || isSeller);
@@ -151,11 +179,18 @@ export default function CreateScreen() {
           {/* Product listing form */}
           {activeType === "product" && (
             <View style={styles.section}>
-              <Pressable style={[styles.productImageBox, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-                <Feather name="camera" size={32} color={colors.mutedForeground} />
-                <Text style={[styles.mediaLabel, { color: colors.foreground }]}>Add product photos</Text>
-                <Text style={[styles.mediaHint, { color: colors.mutedForeground }]}>First photo is the cover image</Text>
+              <Pressable style={[styles.productImageBox, { backgroundColor: colors.muted, borderColor: imageEnhanced ? "#8B5CF6" : colors.border }]}>
+                {imageEnhanced && <View style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(139,92,246,0.1)", borderRadius: 16 }]} />}
+                <Feather name="camera" size={32} color={imageEnhanced ? "#8B5CF6" : colors.mutedForeground} />
+                <Text style={[styles.mediaLabel, { color: colors.foreground }]}>{imageEnhanced ? "Photos Enhanced ✨" : "Add product photos"}</Text>
+                <Text style={[styles.mediaHint, { color: colors.mutedForeground }]}>{imageEnhanced ? "AI removed background and adjusted lighting" : "First photo is the cover image"}</Text>
               </Pressable>
+              
+              {!imageEnhanced && (
+                <Pressable style={styles.aiEnhanceBtn} onPress={handleEnhance}>
+                  <Text style={styles.aiEnhanceText}>✨ Auto-Enhance Images</Text>
+                </Pressable>
+              )}
 
               <View style={styles.fieldGroup}>
                 <Text style={[styles.fieldLabel, { color: colors.foreground }]}>Product Title</Text>
@@ -196,7 +231,6 @@ export default function CreateScreen() {
           )}
 
           {/* Caption */}
-          {activeType !== "product" && activeType !== "live" && (
             <View style={[styles.captionSection, { borderTopColor: colors.border }]}>
               <View style={styles.captionRow}>
                 {user && <Image source={{ uri: user.avatar }} style={styles.avatar} />}
@@ -208,11 +242,16 @@ export default function CreateScreen() {
                   onChangeText={setCaption}
                   multiline
                   maxLength={2200}
+                  editable={!aiTyping}
                 />
               </View>
-              <Text style={[styles.charCount, { color: colors.mutedForeground }]}>{caption.length}/2200</Text>
+              <View style={styles.captionTools}>
+                <Pressable style={[styles.magicWriteBtn, aiTyping && { opacity: 0.5 }]} onPress={handleMagicWrite} disabled={aiTyping}>
+                  <Text style={styles.magicWriteText}>{aiTyping ? "✨ Writing..." : "✨ Magic Write"}</Text>
+                </Pressable>
+                <Text style={[styles.charCount, { color: colors.mutedForeground }]}>{caption.length}/2200</Text>
+              </View>
             </View>
-          )}
 
           {/* Tag products (for posts/reels) */}
           {(activeType === "post" || activeType === "reel") && (
@@ -295,7 +334,10 @@ const styles = StyleSheet.create({
   captionRow: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
   avatar: { width: 40, height: 40, borderRadius: 20 },
   captionInput: { flex: 1, fontSize: 15, lineHeight: 22, minHeight: 80 },
-  charCount: { fontSize: 12, textAlign: "right" },
+  captionTools: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8 },
+  magicWriteBtn: { backgroundColor: "rgba(139,92,246,0.15)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: "rgba(139,92,246,0.3)" },
+  magicWriteText: { color: "#A78BFA", fontSize: 12, fontWeight: "700" },
+  charCount: { fontSize: 12 },
   sectionTitle: { fontSize: 15, fontWeight: "700" },
   sectionHint: { fontSize: 13, marginTop: -6 },
   tagProductCard: { width: 140, borderRadius: 12, borderWidth: 1.5, overflow: "hidden", position: "relative" },
@@ -307,4 +349,6 @@ const styles = StyleSheet.create({
   settingsSection: { borderTopWidth: 1 },
   settingRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1 },
   settingLabel: { flex: 1, fontSize: 15 },
+  aiEnhanceBtn: { alignSelf: "center", backgroundColor: "rgba(139,92,246,0.15)", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16, borderWidth: 1, borderColor: "rgba(139,92,246,0.3)", marginTop: -4 },
+  aiEnhanceText: { color: "#A78BFA", fontSize: 13, fontWeight: "700" },
 });

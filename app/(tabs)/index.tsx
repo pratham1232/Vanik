@@ -1,5 +1,7 @@
 import { Feather } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -18,47 +20,33 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StoryRow from "@/components/StoryRow";
 import { useCart } from "@/context/CartContext";
-import { LIVE_SESSIONS, PRODUCTS, REELS, SELLERS, formatCount, formatPrice } from "@/data/mockData";
+import { LIVE_SESSIONS, PRODUCTS, formatCount, formatPrice } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
 
 const { width } = Dimensions.get("window");
 const CARD_W = (width - 48) / 2;
 
 const CATEGORIES = [
-  { icon: "👗", label: "Women",    color: "#EC4899" },
-  { icon: "👔", label: "Men",      color: "#3B82F6" },
-  { icon: "👶", label: "Kids",     color: "#F59E0B" },
-  { icon: "🏠", label: "Home",     color: "#10B981" },
-  { icon: "💄", label: "Beauty",   color: "#8B5CF6" },
-  { icon: "⌚", label: "Watches",  color: "#0EA5E9" },
-  { icon: "👜", label: "Bags",     color: "#F97316" },
-  { icon: "🛒", label: "More",     color: "#6B7280" },
+  { icon: "👗", label: "Women",    color: "#EC4899", grad: ["#FCE7F3", "#FBCFE8"] },
+  { icon: "👔", label: "Men",      color: "#3B82F6", grad: ["#DBEAFE", "#BFDBFE"] },
+  { icon: "👶", label: "Kids",     color: "#F59E0B", grad: ["#FEF3C7", "#FDE68A"] },
+  { icon: "🏠", label: "Home",     color: "#10B981", grad: ["#D1FAE5", "#A7F3D0"] },
+  { icon: "💄", label: "Beauty",   color: "#8B5CF6", grad: ["#EDE9FE", "#DDD6FE"] },
+  { icon: "⌚", label: "Watches",  color: "#0EA5E9", grad: ["#E0F2FE", "#BAE6FD"] },
+  { icon: "👜", label: "Bags",     color: "#F97316", grad: ["#FFEDD5", "#FED7AA"] },
+  { icon: "🎁", label: "Gifts",    color: "#EC4899", grad: ["#FCE7F3", "#FBCFE8"] },
 ];
 
 const BANNERS = [
-  { id: "b1", title: "Mega Sale",       sub: "Up to 80% OFF",                bg: "#1E0A3C", accent: "#8B5CF6", tag: "LIMITED TIME" },
-  { id: "b2", title: "New Arrivals",    sub: "Fresh Summer Collection",       bg: "#0C1A2E", accent: "#3B82F6", tag: "JUST IN"      },
-  { id: "b3", title: "Resell & Earn",   sub: "Earn ₹500 per order",           bg: "#0A1F15", accent: "#10B981", tag: "EARN NOW"     },
+  { id: "b1", title: "Mega Sale",       sub: "Up to 80% OFF",                img: PRODUCTS[0].image, grad: ["transparent", "rgba(30,10,60,0.9)"], accent: "#8B5CF6", tag: "LIMITED TIME" },
+  { id: "b2", title: "New Arrivals",    sub: "Fresh Summer Collection",       img: PRODUCTS[2].image, grad: ["transparent", "rgba(12,26,46,0.9)"], accent: "#3B82F6", tag: "JUST IN"      },
+  { id: "b3", title: "Resell & Earn",   sub: "Earn ₹500 per order",           img: PRODUCTS[4].image, grad: ["transparent", "rgba(10,31,21,0.9)"], accent: "#10B981", tag: "EARN NOW"     },
 ];
 
-function CountdownTimer() {
-  const colors = useColors();
-  return (
-    <View style={styles.countdownRow}>
-      {["02", "14", "36"].map((v, i) => (
-        <React.Fragment key={i}>
-          <View style={[styles.countdownBox, { backgroundColor: colors.primary }]}>
-            <Text style={styles.countdownNum}>{v}</Text>
-            <Text style={styles.countdownLabel}>{["HRS","MIN","SEC"][i]}</Text>
-          </View>
-          {i < 2 && <Text style={[styles.countdownSep, { color: colors.primary }]}>:</Text>}
-        </React.Fragment>
-      ))}
-    </View>
-  );
-}
-
-function ProductCard({ product }: { product: typeof PRODUCTS[number] }) {
+/* ─────────────────────────────────────────────────────────
+   PRODUCT CARD (Vertical / Horizontal variants)
+───────────────────────────────────────────────────────── */
+function ProductCard({ product, horizontal = false }: { product: typeof PRODUCTS[number], horizontal?: boolean }) {
   const colors = useColors();
   const { addItem } = useCart();
   const [wished, setWished] = useState(false);
@@ -73,13 +61,16 @@ function ProductCard({ product }: { product: typeof PRODUCTS[number] }) {
     addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerName: product.sellerName });
   };
 
+  const cardWidth = horizontal ? 160 : CARD_W;
+
   return (
     <Pressable
-      style={[styles.productCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+      style={[styles.productCard, { backgroundColor: "rgba(18,18,42,0.5)", borderColor: "rgba(139,92,246,0.2)", width: cardWidth }]}
       onPress={() => router.push(`/product/${product.id}`)}
     >
-      <View style={styles.productImageWrap}>
+      <View style={[styles.productImageWrap, { height: horizontal ? 180 : 200 }]}>
         <Image source={product.image} style={styles.productImage} resizeMode="cover" />
+        <LinearGradient colors={["transparent", "rgba(5,5,15,0.9)"]} style={styles.productImageGrad} pointerEvents="none" />
 
         {/* Discount badge */}
         {product.discount > 0 && (
@@ -90,48 +81,29 @@ function ProductCard({ product }: { product: typeof PRODUCTS[number] }) {
 
         {/* Wishlist btn */}
         <Pressable
-          style={[styles.wishBtn, { backgroundColor: wished ? "#FF3B5C" : "rgba(0,0,0,0.5)" }]}
+          style={[styles.wishBtn, { backgroundColor: wished ? "#FF3B5C" : "rgba(0,0,0,0.3)" }]}
           onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setWished((w) => !w); }}
         >
           <Feather name="heart" size={14} color="#fff" />
         </Pressable>
+
+        {/* Floating Add to Cart */}
+        <Animated.View style={[styles.floatAddCartWrap, { transform: [{ scale }] }]}>
+          <Pressable style={[styles.floatAddCart, { backgroundColor: "#8B5CF6" }]} onPress={handleAdd}>
+            <Feather name="plus" size={18} color="#fff" />
+          </Pressable>
+        </Animated.View>
       </View>
 
       <View style={styles.productBody}>
-        <Text style={[styles.productBrand, { color: colors.primary }]} numberOfLines={1}>{product.sellerName}</Text>
-        <Text style={[styles.productTitle, { color: colors.foreground }]} numberOfLines={2}>{product.title}</Text>
-
-        <View style={styles.priceRow}>
-          <Text style={[styles.price, { color: colors.foreground }]}>{formatPrice(product.price)}</Text>
+        <Text style={[styles.productBrand, { color: "#A78BFA" }]} numberOfLines={1}>{product.sellerName}</Text>
+        <Text style={[styles.productTitle, { color: "#fff" }]} numberOfLines={2}>{product.title}</Text>
+        <View style={styles.priceContainer}>
+          <Text style={[styles.price, { color: "#fff" }]}>{formatPrice(product.price)}</Text>
           {product.originalPrice > product.price && (
-            <Text style={[styles.originalPrice, { color: colors.mutedForeground }]}>₹{product.originalPrice.toLocaleString("en-IN")}</Text>
+            <Text style={[styles.originalPrice, { color: "rgba(255,255,255,0.4)" }]}>₹{product.originalPrice.toLocaleString("en-IN")}</Text>
           )}
         </View>
-
-        {/* Rating */}
-        <View style={styles.ratingRow}>
-          <View style={[styles.ratingBadge, { backgroundColor: "#10B981" }]}>
-            <Feather name="star" size={9} color="#fff" />
-            <Text style={styles.ratingNum}>{product.rating}</Text>
-          </View>
-          <Text style={[styles.ratingReviews, { color: colors.mutedForeground }]}>({product.reviews})</Text>
-          {product.stock < 10 && (
-            <Text style={[styles.lowStock, { color: "#FF3B5C" }]}>Only {product.stock} left!</Text>
-          )}
-        </View>
-
-        {/* Free shipping */}
-        <View style={styles.shippingRow}>
-          <Feather name="truck" size={10} color="#10B981" />
-          <Text style={[styles.shippingText, { color: "#10B981" }]}>Free Delivery</Text>
-        </View>
-
-        <Animated.View style={{ transform: [{ scale }] }}>
-          <Pressable style={[styles.addCartBtn, { backgroundColor: colors.primary }]} onPress={handleAdd}>
-            <Feather name="shopping-bag" size={13} color="#fff" />
-            <Text style={styles.addCartText}>Add to Cart</Text>
-          </Pressable>
-        </Animated.View>
       </View>
     </Pressable>
   );
@@ -141,71 +113,83 @@ export default function HomeScreen() {
   const colors  = useColors();
   const insets  = useSafeAreaInsets();
   const { count } = useCart();
-  const topPad    = Platform.OS === "web" ? 67 : insets.top;
+  const topPad    = Platform.OS === "web" ? 20 : insets.top;
   const [search, setSearch]       = useState("");
-  const [activeCat, setActiveCat] = useState("All");
   const [bannerIdx, setBannerIdx] = useState(0);
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  const headerBg = scrollY.interpolate({
-    inputRange: [0, 80],
-    outputRange: [colors.background, colors.surface],
+  // Header blur intensity based on scroll
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 200],
+    outputRange: [0, 1],
     extrapolate: "clamp",
   });
 
-  const filteredProducts = activeCat === "All"
-    ? PRODUCTS
-    : PRODUCTS.filter((p) => p.category.toLowerCase().includes(activeCat.toLowerCase()));
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* ── Sticky Header ── */}
-      <Animated.View style={[styles.header, { backgroundColor: headerBg, paddingTop: topPad, borderBottomColor: colors.border }]}>
-        {/* Logo row */}
+      {/* ── Root Aura Gradient ── */}
+      <LinearGradient 
+        colors={["#0A0A1F", "#050510", "#000000"]} 
+        style={StyleSheet.absoluteFillObject} 
+      />
+      <View style={styles.topAura}>
+        <LinearGradient 
+          colors={["rgba(139,92,246,0.15)", "transparent"]} 
+          style={StyleSheet.absoluteFillObject} 
+        />
+      </View>
+
+      {/* ── Glassmorphism Header ── */}
+      <Animated.View style={[styles.header, { paddingTop: topPad }]}>
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: headerOpacity }]}>
+          <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+        </Animated.View>
+
         <View style={styles.headerRow}>
           <View style={styles.logoWrap}>
-            <Text style={[styles.logo, { color: colors.foreground }]}>
-              <Text style={{ color: colors.primary }}>V</Text>anik
+            <Text style={styles.logo}>
+              <Text style={{ color: "#E9D5FF" }}>V</Text>anik
             </Text>
             <View style={[styles.liveIndicator, { backgroundColor: "#FF3B5C" }]}>
               <Text style={styles.liveText}>LIVE</Text>
             </View>
           </View>
           <View style={styles.headerRight}>
-            <Pressable style={[styles.hBtn, { backgroundColor: colors.muted }]} onPress={() => router.push("/notifications")}>
-              <Feather name="bell" size={18} color={colors.foreground} />
+            <Pressable style={[styles.hBtn, { backgroundColor: "rgba(139,92,246,0.3)", borderColor: "#8B5CF6", borderWidth: 1 }]} onPress={() => router.push("/ai-chat")}>
+              <Text style={{ fontSize: 16 }}>✨</Text>
+            </Pressable>
+            <Pressable style={[styles.hBtn, { backgroundColor: "rgba(255,255,255,0.2)" }]} onPress={() => router.push("/notifications")}>
+              <Feather name="bell" size={18} color="#fff" />
               <View style={[styles.hDot, { backgroundColor: "#FF3B5C" }]} />
             </Pressable>
-            <Pressable style={[styles.hBtn, { backgroundColor: colors.muted }]} onPress={() => router.push("/cart")}>
-              <Feather name="shopping-cart" size={18} color={colors.foreground} />
+            <Pressable style={[styles.hBtn, { backgroundColor: "rgba(255,255,255,0.2)" }]} onPress={() => router.push("/cart")}>
+              <Feather name="shopping-cart" size={18} color="#fff" />
               {count > 0 && (
                 <View style={[styles.cartBadge, { backgroundColor: "#FF3B5C" }]}>
                   <Text style={styles.cartBadgeText}>{count}</Text>
                 </View>
               )}
             </Pressable>
-            <Pressable style={[styles.hBtn, { backgroundColor: colors.muted }]}>
-              <Feather name="user" size={18} color={colors.foreground} />
-            </Pressable>
           </View>
         </View>
 
-        {/* Search bar */}
-        <View style={[styles.searchBar, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-          <Feather name="search" size={16} color={colors.mutedForeground} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.foreground }]}
-            placeholder="Search sarees, kurtas, home decor..."
-            placeholderTextColor={colors.mutedForeground}
-            value={search}
-            onChangeText={setSearch}
-            onFocus={() => router.push("/explore")}
-          />
-          <Pressable style={[styles.searchMic, { backgroundColor: colors.primary + "20" }]}>
-            <Feather name="mic" size={14} color={colors.primary} />
-          </Pressable>
+        {/* ── Search Bar ── */}
+        <View style={styles.searchSection}>
+          <BlurView intensity={25} tint="dark" style={[styles.searchPill, { borderColor: "rgba(255,255,255,0.1)" }]}>
+            <Feather name="search" size={18} color="rgba(255,255,255,0.4)" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search awesome products..."
+              placeholderTextColor="rgba(255,255,255,0.4)"
+              value={search}
+              onChangeText={setSearch}
+            />
+            <Pressable style={styles.micBtn}>
+              <Feather name="mic" size={18} color="rgba(255,255,255,0.6)" />
+            </Pressable>
+          </BlurView>
         </View>
       </Animated.View>
 
@@ -213,230 +197,118 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
-        contentContainerStyle={{ paddingTop: topPad + 96, paddingBottom: Platform.OS === "web" ? 90 : 80 }}
+        contentContainerStyle={{ paddingTop: topPad + 140, paddingBottom: 120 }}
       >
+        {/* ── Featured Banners ── */}
+        <View style={styles.bannerSection}>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={(e) => setBannerIdx(Math.round(e.nativeEvent.contentOffset.x / (width - 32)))}
+            scrollEventThrottle={16}
+          >
+            {BANNERS.map((b) => (
+              <View key={b.id} style={[styles.banner, { backgroundColor: "#0A0A1F" }]}>
+                <Image source={b.img} style={styles.bannerImg} resizeMode="cover" />
+                <LinearGradient colors={["rgba(0,0,0,0.2)", "rgba(10,10,31,0.95)"]} style={StyleSheet.absoluteFillObject} />
+                <View style={styles.bannerContent}>
+                  <View style={[styles.bannerTag, { backgroundColor: b.accent }]}>
+                    <Text style={styles.bannerTagText}>{b.tag}</Text>
+                  </View>
+                  <Text style={styles.bannerTitle}>{b.title}</Text>
+                  <Text style={styles.bannerSub}>{b.sub}</Text>
+                  <Pressable style={[styles.bannerBtn, { backgroundColor: b.accent }]}>
+                    <Text style={styles.bannerBtnText}>Shop Now</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+          <View style={styles.dots}>
+            {BANNERS.map((_, i) => (
+              <View key={i} style={[styles.dot, bannerIdx === i ? { backgroundColor: "#fff", width: 20 } : { backgroundColor: "rgba(255,255,255,0.3)" }]} />
+            ))}
+          </View>
+        </View>
+
+        {/* ── Live Shopping ── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>🔥 Live Shopping</Text>
+            <Pressable onPress={() => router.push("/explore")}><Text style={[styles.seeAll, { color: "#8B5CF6" }]}>See all</Text></Pressable>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.liveScroll}>
+            {LIVE_SESSIONS.map((s) => (
+              <Pressable key={s.id} style={styles.liveCard} onPress={() => router.push(`/live/${s.id}`)}>
+                <Image source={s.thumbnail} style={styles.liveImg} />
+                <LinearGradient colors={["transparent", "rgba(0,0,0,0.8)"]} style={StyleSheet.absoluteFillObject} />
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveBadgeText}>LIVE</Text>
+                </View>
+                <View style={styles.liveMeta}>
+                  <Feather name="eye" size={12} color="#fff" />
+                  <Text style={styles.liveViewerText}>{formatCount(s.viewerCount)}</Text>
+                </View>
+                <View style={styles.liveHost}>
+                  <Image source={{ uri: s.sellerAvatar }} style={styles.hostAvatar} />
+                </View>
+                <View style={styles.liveInfoOverlay}>
+                  <Text style={styles.hostName} numberOfLines={1}>{s.sellerName}</Text>
+                  <Text style={styles.liveTitle} numberOfLines={1}>{s.title}</Text>
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+
         {/* ── Stories ── */}
         <StoryRow />
-
-        {/* ── Hero Banner ── */}
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(e) => setBannerIdx(Math.round(e.nativeEvent.contentOffset.x / (width - 32)))}
-          contentContainerStyle={{ gap: 0, paddingHorizontal: 16 }}
-        >
-          {BANNERS.map((b, i) => (
-            <Pressable
-              key={b.id}
-              style={[styles.heroBanner, { backgroundColor: b.bg, width: width - 32, marginRight: i < BANNERS.length - 1 ? 12 : 0 }]}
-              onPress={() => router.push("/explore")}
-            >
-              <View style={[styles.heroBannerTag, { backgroundColor: b.accent }]}>
-                <Text style={styles.heroBannerTagText}>{b.tag}</Text>
-              </View>
-              <Text style={styles.heroBannerTitle}>{b.title}</Text>
-              <Text style={[styles.heroBannerSub, { color: b.accent }]}>{b.sub}</Text>
-              <View style={[styles.heroBannerBtn, { backgroundColor: b.accent }]}>
-                <Text style={styles.heroBannerBtnText}>Shop Now →</Text>
-              </View>
-            </Pressable>
-          ))}
-        </ScrollView>
-        {/* Dots */}
-        <View style={styles.bannerDots}>
-          {BANNERS.map((_, i) => (
-            <View key={i} style={[styles.bannerDot, { backgroundColor: i === bannerIdx ? colors.primary : colors.border, width: i === bannerIdx ? 20 : 6 }]} />
-          ))}
-        </View>
 
         {/* ── Categories ── */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Shop by Category</Text>
-            <Pressable onPress={() => router.push("/explore")}>
-              <Text style={[styles.seeAll, { color: colors.primary }]}>View all →</Text>
-            </Pressable>
+            <Text style={styles.sectionTitle}>Explore Categories</Text>
           </View>
-          <View style={styles.categoryGrid}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catScroll}>
             {CATEGORIES.map((cat) => (
-              <Pressable
-                key={cat.label}
-                style={[styles.catItem, activeCat === cat.label && { borderColor: colors.primary, borderWidth: 2 }, { backgroundColor: colors.card, borderColor: colors.border }]}
-                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setActiveCat(activeCat === cat.label ? "All" : cat.label); }}
-              >
-                <View style={[styles.catIconWrap, { backgroundColor: cat.color + "18" }]}>
-                  <Text style={styles.catEmoji}>{cat.icon}</Text>
-                </View>
-                <Text style={[styles.catLabel, { color: activeCat === cat.label ? colors.primary : colors.foreground }]}>{cat.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        {/* ── Flash Sale ── */}
-        <View style={[styles.flashSale, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.flashSaleHeader}>
-            <View style={styles.flashLeft}>
-              <Text style={{ fontSize: 18 }}>⚡</Text>
-              <Text style={[styles.flashTitle, { color: colors.foreground }]}>Flash Sale</Text>
-              <View style={[styles.flashBadge, { backgroundColor: "#FF3B5C" }]}>
-                <Text style={styles.flashBadgeText}>LIVE</Text>
-              </View>
-            </View>
-            <CountdownTimer />
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.flashRow}>
-            {PRODUCTS.filter((p) => p.discount > 0).map((p) => (
-              <Pressable
-                key={p.id}
-                style={[styles.flashCard, { backgroundColor: colors.muted, borderColor: colors.border }]}
-                onPress={() => router.push(`/product/${p.id}`)}
-              >
-                <Image source={p.image} style={styles.flashImage} resizeMode="cover" />
-                <View style={[styles.flashDisc, { backgroundColor: "#FF3B5C" }]}>
-                  <Text style={styles.flashDiscText}>{p.discount}%{"\n"}OFF</Text>
-                </View>
-                <Text style={[styles.flashPrice, { color: colors.primary }]}>{formatPrice(p.price)}</Text>
-                <Text style={[styles.flashOrig,  { color: colors.mutedForeground }]}>₹{p.originalPrice}</Text>
+              <Pressable key={cat.label} style={styles.catItem} onPress={() => router.push("/explore")}>
+                <BlurView intensity={20} tint="dark" style={[styles.catIcon, { borderColor: "rgba(255,255,255,0.1)" }]}>
+                  <Text style={{ fontSize: 24 }}>{cat.icon}</Text>
+                </BlurView>
+                <Text style={[styles.catLabel, { color: "rgba(255,255,255,0.6)" }]}>{cat.label}</Text>
               </Pressable>
             ))}
           </ScrollView>
         </View>
 
-        {/* ── Live Now ── */}
+        {/* ── Trending Section ── */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <View style={[styles.liveDot, { backgroundColor: "#FF3B5C" }]} />
-              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Live Shopping</Text>
-            </View>
-            <Pressable>
-              <Text style={[styles.seeAll, { color: colors.primary }]}>See all →</Text>
-            </Pressable>
+            <Text style={styles.sectionTitle}>✨ Trending Now</Text>
+            <Pressable onPress={() => router.push("/explore")}><Text style={[styles.seeAll, { color: "#8B5CF6" }]}>See all</Text></Pressable>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hRow}>
-            {LIVE_SESSIONS.map((s) => (
-              <Pressable key={s.id} style={styles.liveCard} onPress={() => router.push(`/live/${s.id}`)}>
-                <View style={styles.liveThumbWrap}>
-                  <Image source={s.thumbnail} style={styles.liveThumb} resizeMode="cover" />
-                  <View style={styles.liveScrim} />
-                  <View style={[styles.livePill, { backgroundColor: "#FF3B5C" }]}>
-                    <View style={styles.livePillDot} />
-                    <Text style={styles.livePillText}>LIVE</Text>
-                  </View>
-                  <View style={[styles.liveViewers, { backgroundColor: "rgba(0,0,0,0.6)" }]}>
-                    <Feather name="eye" size={9} color="#fff" />
-                    <Text style={styles.liveViewersText}>{formatCount(s.viewerCount)}</Text>
-                  </View>
-                  <Image source={{ uri: s.sellerAvatar }} style={styles.liveSellerAvatar} />
-                </View>
-                <Text style={[styles.liveSellerName, { color: colors.foreground }]} numberOfLines={1}>{s.sellerName}</Text>
-                <Text style={[styles.liveTitle, { color: colors.mutedForeground }]} numberOfLines={1}>{s.title}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* ── Reels preview ── */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>🎬 Trending Reels</Text>
-            <Pressable onPress={() => router.push("/(tabs)/reels")}>
-              <Text style={[styles.seeAll, { color: colors.primary }]}>Watch all →</Text>
-            </Pressable>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hRow}>
-            {REELS.map((r) => (
-              <Pressable key={r.id} style={styles.reelThumb} onPress={() => router.push("/(tabs)/reels")}>
-                <Image source={r.thumbnail} style={styles.reelThumbImg} resizeMode="cover" />
-                <View style={styles.reelThumbScrim} />
-                <View style={styles.reelThumbPlay}>
-                  <Feather name="play" size={18} color="#fff" />
-                </View>
-                <View style={[styles.reelViewBadge, { backgroundColor: "rgba(0,0,0,0.6)" }]}>
-                  <Feather name="eye" size={9} color="#fff" />
-                  <Text style={styles.reelViewText}>{r.views}</Text>
-                </View>
-                <Text style={[styles.reelThumbSeller, { color: "rgba(255,255,255,0.9)" }]} numberOfLines={1}>@{r.sellerName.replace(/\s/g, "").toLowerCase()}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* ── Top Sellers ── */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>⭐ Top Sellers</Text>
-            <Pressable onPress={() => router.push("/explore")}>
-              <Text style={[styles.seeAll, { color: colors.primary }]}>View all →</Text>
-            </Pressable>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hRow}>
-            {SELLERS.map((s) => (
-              <Pressable key={s.id} style={[styles.sellerCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Image source={{ uri: s.avatar }} style={styles.sellerAvatar} />
-                <View style={[styles.sellerVerifiedDot, { backgroundColor: s.verified ? colors.primary : "transparent" }]}>
-                  {s.verified && <Feather name="check" size={8} color="#fff" />}
-                </View>
-                <Text style={[styles.sellerName, { color: colors.foreground }]} numberOfLines={1}>{s.name}</Text>
-                <Text style={[styles.sellerCat, { color: colors.mutedForeground }]}>{s.category}</Text>
-                <View style={styles.sellerStars}>
-                  <Feather name="star" size={10} color="#F59E0B" />
-                  <Text style={[styles.sellerRating, { color: colors.mutedForeground }]}>{s.rating}</Text>
-                </View>
-                <View style={[styles.followBtn, { borderColor: colors.primary }]}>
-                  <Text style={[styles.followBtnText, { color: colors.primary }]}>Follow</Text>
-                </View>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* ── Resell & Earn banner ── */}
-        <Pressable style={[styles.resellBanner, { backgroundColor: "#1E0A3C", borderColor: colors.primary + "40" }]} onPress={() => router.push("/explore")}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.resellTitle}>💰 Resell & Earn</Text>
-            <Text style={styles.resellSub}>Share products and earn up to ₹500 per order. No investment needed.</Text>
-            <View style={styles.resellBtn}>
-              <Text style={styles.resellBtnText}>Start Reselling →</Text>
-            </View>
-          </View>
-          <Image source={PRODUCTS[0].image} style={styles.resellImage} resizeMode="cover" />
-        </Pressable>
-
-        {/* ── Product Grid ── */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-              {activeCat === "All" ? "🔥 Trending Products" : `${activeCat} Products`}
-            </Text>
-            <Pressable onPress={() => router.push("/explore")}>
-              <Text style={[styles.seeAll, { color: colors.primary }]}>See all →</Text>
-            </Pressable>
-          </View>
-
-          {/* Sort / filter bar */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBar}>
-            {["All", "Fashion", "Beauty", "Home Decor", "Electronics"].map((f) => (
-              <Pressable
-                key={f}
-                style={[styles.filterChip, { borderColor: activeCat === f ? colors.primary : colors.border, backgroundColor: activeCat === f ? colors.primary : "transparent" }]}
-                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setActiveCat(f); }}
-              >
-                <Text style={[styles.filterChipText, { color: activeCat === f ? "#fff" : colors.mutedForeground }]}>{f}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-
-          {/* 2-column grid */}
           <View style={styles.productGrid}>
-            {(filteredProducts.length > 0 ? filteredProducts : PRODUCTS).map((p) => (
+            {PRODUCTS.slice(0, 4).map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </View>
         </View>
 
+        {/* ── Special Banner ── */}
+        <Pressable style={styles.specialBanner} onPress={() => router.push("/explore")}>
+          <Image source={PRODUCTS[4]?.image} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+          <LinearGradient colors={["rgba(236,72,153,0.8)", "rgba(236,72,153,0.3)"]} style={styles.specialGrad}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.specialTitle}>Summer Must-Haves</Text>
+              <Text style={styles.specialSub}>Refresh your wardrobe with new styles.</Text>
+              <View style={styles.specialBtn}>
+                <Text style={styles.specialBtnText}>Explore</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </Pressable>
       </Animated.ScrollView>
     </View>
   );
@@ -444,135 +316,92 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container:          { flex: 1 },
-
+  topAura:            { position: "absolute", top: 0, left: 0, right: 0, height: 400 },
+  
   /* Header */
-  header:             { position: "absolute", top: 0, left: 0, right: 0, zIndex: 100, borderBottomWidth: 1, paddingHorizontal: 16, paddingBottom: 10 },
-  headerRow:          { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 6, paddingBottom: 8 },
+  header:             { position: "absolute", top: 0, left: 0, right: 0, zIndex: 100, paddingBottom: 15 },
+  headerRow:          { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, height: 60 },
   logoWrap:           { flexDirection: "row", alignItems: "center", gap: 8 },
-  logo:               { fontSize: 26, fontWeight: "900", letterSpacing: 0.5 },
-  liveIndicator:      { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
-  liveText:           { color: "#fff", fontSize: 9, fontWeight: "900", letterSpacing: 0.5 },
-  headerRight:        { flexDirection: "row", gap: 7 },
-  hBtn:               { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", position: "relative" },
-  hDot:               { position: "absolute", top: 6, right: 6, width: 8, height: 8, borderRadius: 4 },
-  cartBadge:          { position: "absolute", top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
-  cartBadgeText:      { color: "#fff", fontSize: 9, fontWeight: "800" },
-  searchBar:          { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 12, borderWidth: 1 },
-  searchInput:        { flex: 1, fontSize: 13 },
-  searchMic:          { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  logo:               { fontSize: 24, fontWeight: "900", color: "#fff", letterSpacing: -0.5 },
+  liveIndicator:      { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 4 },
+  liveText:           { color: "#fff", fontSize: 9, fontWeight: "900" },
+  headerRight:        { flexDirection: "row", alignItems: "center", gap: 10 },
+  hBtn:               { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  hDot:               { position: "absolute", top: 10, right: 10, width: 8, height: 8, borderRadius: 4, borderWidth: 1.5, borderColor: "#000" },
+  cartBadge:          { position: "absolute", top: 8, right: 8, minWidth: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
+  cartBadgeText:      { color: "#fff", fontSize: 9, fontWeight: "900" },
 
-  /* Hero banner */
-  heroBanner:         { borderRadius: 18, padding: 20, height: 150, justifyContent: "center", overflow: "hidden" },
-  heroBannerTag:      { alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginBottom: 6 },
-  heroBannerTagText:  { color: "#fff", fontSize: 9, fontWeight: "900", letterSpacing: 1 },
-  heroBannerTitle:    { color: "#fff", fontSize: 24, fontWeight: "900", marginBottom: 2 },
-  heroBannerSub:      { fontSize: 13, fontWeight: "600", marginBottom: 12 },
-  heroBannerBtn:      { alignSelf: "flex-start", paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10 },
-  heroBannerBtnText:  { color: "#fff", fontSize: 12, fontWeight: "800" },
-  bannerDots:         { flexDirection: "row", justifyContent: "center", gap: 5, marginTop: 8, marginBottom: 4 },
-  bannerDot:          { height: 6, borderRadius: 3 },
+  /* Search */
+  searchSection:      { paddingHorizontal: 16, marginTop: 5 },
+  searchPill:         { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 18, borderWidth: 1, overflow: "hidden" },
+  searchInput:        { flex: 1, color: "#fff", fontSize: 14, fontWeight: "500" },
+  micBtn:             { padding: 4 },
 
-  /* Section */
-  section:            { marginTop: 16 },
-  sectionHeader:      { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, marginBottom: 12 },
-  sectionTitle:       { fontSize: 17, fontWeight: "800" },
-  seeAll:             { fontSize: 13, fontWeight: "600" },
-  hRow:               { paddingHorizontal: 16, gap: 10 },
+  /* Banners */
+  bannerSection:      { marginTop: 15, marginBottom: 10 },
+  banner:             { width: width - 32, height: 180, marginHorizontal: 16, borderRadius: 24, overflow: "hidden", position: "relative", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+  bannerImg:          { ...StyleSheet.absoluteFillObject },
+  bannerContent:      { flex: 1, justifyContent: "flex-end", padding: 20, gap: 8 },
+  bannerTag:          { alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginBottom: 8, fontWeight: "bold" },
+  bannerTagText:      { color: "#fff", fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
+  bannerTitle:        { color: "#fff", fontSize: 26, fontWeight: "900", letterSpacing: -0.5 },
+  bannerSub:          { color: "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: "600" },
+  bannerBtn:          { alignSelf: "flex-start", marginTop: 12, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14, fontWeight: "bold" },
+  bannerBtnText:      { color: "#fff", fontSize: 14, fontWeight: "800" },
+  dots:               { flexDirection: "row", justifyContent: "center", gap: 8, marginTop: 14, paddingBottom: 8 },
+  dot:                { height: 7, borderRadius: 3.5 },
+
+  /* Sections */
+  section:            { marginTop: 35, marginHorizontal: 0 },
+  sectionHeader:      { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, marginBottom: 18 },
+  sectionTitle:       { color: "#fff", fontSize: 20, fontWeight: "900", letterSpacing: -0.5 },
+  seeAll:             { fontSize: 13, fontWeight: "700", letterSpacing: 0.3 },
+
+  /* Live Cards */
+  liveScroll:         { paddingHorizontal: 16, gap: 16 },
+  liveCard:           { width: 160, height: 220, borderRadius: 24, overflow: "hidden", position: "relative", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 6, elevation: 4 },
+  liveImg:            { ...StyleSheet.absoluteFillObject },
+  liveBadge:          { position: "absolute", top: 12, left: 12, backgroundColor: "#FF3B5C", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  liveDot:            { width: 7, height: 7, borderRadius: 3.5, backgroundColor: "#fff" },
+  liveBadgeText:      { color: "#fff", fontSize: 11, fontWeight: "900" },
+  liveMeta:           { position: "absolute", top: 12, right: 12, backgroundColor: "rgba(0,0,0,0.5)", flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  liveViewerText:     { color: "#fff", fontSize: 11, fontWeight: "800" },
+  liveHost:           { position: "absolute", bottom: 50, left: 12, width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: "#fff", overflow: "hidden" },
+  hostAvatar:         { width: "100%", height: "100%" },
+  liveInfoOverlay:    { position: "absolute", bottom: 12, left: 12, right: 12 },
+  hostName:           { color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: "700" },
+  liveTitle:          { color: "#fff", fontSize: 13, fontWeight: "800", marginTop: 2 },
 
   /* Categories */
-  categoryGrid:       { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 16, gap: 8 },
-  catItem:            { width: (width - 56) / 4, alignItems: "center", paddingVertical: 10, borderRadius: 14, borderWidth: 1, gap: 5 },
-  catIconWrap:        { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
-  catEmoji:           { fontSize: 20 },
-  catLabel:           { fontSize: 11, fontWeight: "600" },
+  catScroll:          { paddingHorizontal: 16, gap: 24 },
+  catItem:            { alignItems: "center", gap: 12, width: 80 },
+  catIcon:            { width: 72, height: 72, borderRadius: 22, alignItems: "center", justifyContent: "center", borderWidth: 1, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 3 },
+  catLabel:           { fontSize: 13, fontWeight: "700", color: "rgba(255,255,255,0.8)", textAlign: "center" },
 
-  /* Flash sale */
-  flashSale:          { marginHorizontal: 16, borderRadius: 18, padding: 14, borderWidth: 1, marginTop: 16 },
-  flashSaleHeader:    { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
-  flashLeft:          { flexDirection: "row", alignItems: "center", gap: 6 },
-  flashTitle:         { fontSize: 17, fontWeight: "800" },
-  flashBadge:         { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
-  flashBadgeText:     { color: "#fff", fontSize: 9, fontWeight: "900" },
-  countdownRow:       { flexDirection: "row", alignItems: "center", gap: 4 },
-  countdownBox:       { width: 38, height: 38, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-  countdownNum:       { color: "#fff", fontSize: 14, fontWeight: "900", lineHeight: 16 },
-  countdownLabel:     { color: "rgba(255,255,255,0.75)", fontSize: 7, fontWeight: "700", letterSpacing: 0.3 },
-  countdownSep:       { fontSize: 18, fontWeight: "900", marginBottom: 2 },
-  flashRow:           { gap: 8 },
-  flashCard:          { width: 90, borderRadius: 12, overflow: "hidden", borderWidth: 1, position: "relative" },
-  flashImage:         { width: "100%", height: 90 },
-  flashDisc:          { position: "absolute", top: 4, left: 4, width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
-  flashDiscText:      { color: "#fff", fontSize: 7, fontWeight: "900", textAlign: "center", lineHeight: 9 },
-  flashPrice:         { fontSize: 11, fontWeight: "800", paddingHorizontal: 6, paddingTop: 4 },
-  flashOrig:          { fontSize: 9, paddingHorizontal: 6, paddingBottom: 6, textDecorationLine: "line-through" },
+  /* Products */
+  productGrid:        { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 16, gap: 14 },
+  productCard:        { borderRadius: 24, overflow: "hidden", borderWidth: 1, marginBottom: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 4 },
+  productImageWrap:   { position: "relative", overflow: "hidden" },
+  productImage:       { width: "100%", height: "100%" },
+  productImageGrad:   { ...StyleSheet.absoluteFillObject },
+  discBadge:          { position: "absolute", top: 12, left: 12, width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  discBadgeText:      { color: "#fff", fontSize: 10, fontWeight: "900", textAlign: "center", lineHeight: 12 },
+  wishBtn:            { position: "absolute", top: 12, right: 12, width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  floatAddCartWrap:   { position: "absolute", bottom: 12, right: 12 },
+  floatAddCart:       { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", elevation: 5, shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  productBody:        { padding: 12, gap: 5 },
+  productBrand:       { fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1 },
+  productTitle:       { fontSize: 14, fontWeight: "700", lineHeight: 19, height: 38 },
+  priceContainer:     { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", gap: 6, marginTop: 4 },
+  price:              { fontSize: 17, fontWeight: "900" },
+  originalPrice:      { fontSize: 12, textDecorationLine: "line-through", opacity: 0.5 },
 
-  /* Live */
-  liveDot:            { width: 8, height: 8, borderRadius: 4 },
-  liveCard:           { width: 130 },
-  liveThumbWrap:      { width: 130, height: 160, borderRadius: 14, overflow: "hidden", position: "relative" },
-  liveThumb:          { width: "100%", height: "100%" },
-  liveScrim:          { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.2)" },
-  livePill:           { position: "absolute", top: 8, left: 8, flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8 },
-  livePillDot:        { width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#fff" },
-  livePillText:       { color: "#fff", fontSize: 9, fontWeight: "800" },
-  liveViewers:        { position: "absolute", bottom: 8, left: 8, flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  liveViewersText:    { color: "#fff", fontSize: 9, fontWeight: "700" },
-  liveSellerAvatar:   { position: "absolute", bottom: 8, right: 8, width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: "#fff" },
-  liveSellerName:     { fontSize: 12, fontWeight: "700", marginTop: 6, paddingHorizontal: 2 },
-  liveTitle:          { fontSize: 11, paddingHorizontal: 2 },
-
-  /* Reels */
-  reelThumb:          { width: 100, height: 160, borderRadius: 14, overflow: "hidden", position: "relative" },
-  reelThumbImg:       { width: "100%", height: "100%" },
-  reelThumbScrim:     { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.25)" },
-  reelThumbPlay:      { position: "absolute", top: "50%", left: "50%", marginTop: -18, marginLeft: -18, width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center" },
-  reelViewBadge:      { position: "absolute", top: 6, left: 6, flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 5, paddingVertical: 2, borderRadius: 6 },
-  reelViewText:       { color: "#fff", fontSize: 9, fontWeight: "700" },
-  reelThumbSeller:    { position: "absolute", bottom: 8, left: 0, right: 0, textAlign: "center", fontSize: 10, fontWeight: "700" },
-
-  /* Top sellers */
-  sellerCard:         { width: 105, borderRadius: 16, padding: 12, alignItems: "center", gap: 4, borderWidth: 1, position: "relative" },
-  sellerAvatar:       { width: 56, height: 56, borderRadius: 28 },
-  sellerVerifiedDot:  { position: "absolute", top: 36, right: 28, width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center" },
-  sellerName:         { fontSize: 12, fontWeight: "700", textAlign: "center" },
-  sellerCat:          { fontSize: 10, textAlign: "center" },
-  sellerStars:        { flexDirection: "row", alignItems: "center", gap: 3 },
-  sellerRating:       { fontSize: 10 },
-  followBtn:          { paddingHorizontal: 14, paddingVertical: 4, borderRadius: 14, borderWidth: 1.5, marginTop: 2 },
-  followBtnText:      { fontSize: 10, fontWeight: "700" },
-
-  /* Resell banner */
-  resellBanner:       { marginHorizontal: 16, borderRadius: 18, padding: 18, marginTop: 16, flexDirection: "row", alignItems: "center", borderWidth: 1, overflow: "hidden" },
-  resellTitle:        { color: "#fff", fontSize: 18, fontWeight: "900", marginBottom: 4 },
-  resellSub:          { color: "rgba(255,255,255,0.7)", fontSize: 12, lineHeight: 18, marginBottom: 12 },
-  resellBtn:          { alignSelf: "flex-start", backgroundColor: "#8B5CF6", paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10 },
-  resellBtnText:      { color: "#fff", fontSize: 12, fontWeight: "800" },
-  resellImage:        { width: 90, height: 90, borderRadius: 14, marginLeft: 10 },
-
-  /* Product grid */
-  filterBar:          { paddingHorizontal: 16, gap: 8, marginBottom: 12 },
-  filterChip:         { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1 },
-  filterChipText:     { fontSize: 12, fontWeight: "600" },
-  productGrid:        { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 16, gap: 12 },
-  productCard:        { width: CARD_W, borderRadius: 14, overflow: "hidden", borderWidth: 1 },
-  productImageWrap:   { position: "relative" },
-  productImage:       { width: "100%", height: CARD_W * 1.1 },
-  discBadge:          { position: "absolute", top: 8, left: 8, width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
-  discBadgeText:      { color: "#fff", fontSize: 8, fontWeight: "900", textAlign: "center", lineHeight: 10 },
-  wishBtn:            { position: "absolute", top: 8, right: 8, width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
-  productBody:        { padding: 10, gap: 3 },
-  productBrand:       { fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5 },
-  productTitle:       { fontSize: 13, fontWeight: "600", lineHeight: 18 },
-  priceRow:           { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },
-  price:              { fontSize: 15, fontWeight: "900" },
-  originalPrice:      { fontSize: 11, textDecorationLine: "line-through" },
-  ratingRow:          { flexDirection: "row", alignItems: "center", gap: 5 },
-  ratingBadge:        { flexDirection: "row", alignItems: "center", gap: 2, paddingHorizontal: 5, paddingVertical: 2, borderRadius: 6 },
-  ratingNum:          { color: "#fff", fontSize: 9, fontWeight: "800" },
-  ratingReviews:      { fontSize: 10 },
-  lowStock:           { fontSize: 9, fontWeight: "700" },
-  shippingRow:        { flexDirection: "row", alignItems: "center", gap: 4 },
-  shippingText:       { fontSize: 10, fontWeight: "600" },
-  addCartBtn:         { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, paddingVertical: 8, borderRadius: 10, marginTop: 4 },
-  addCartText:        { color: "#fff", fontSize: 11, fontWeight: "800" },
+  /* Special Banner */
+  specialBanner:      { marginHorizontal: 16, marginTop: 45, marginBottom: 30, borderRadius: 28, height: 180, overflow: "hidden", position: "relative", shadowColor: "#EC4899", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+  specialGrad:        { ...StyleSheet.absoluteFillObject, flexDirection: "row", alignItems: "center", paddingHorizontal: 24 },
+  specialTitle:       { color: "#fff", fontSize: 30, fontWeight: "900", marginBottom: 8, letterSpacing: -0.5 },
+  specialSub:         { color: "rgba(255,255,255,0.95)", fontSize: 15, fontWeight: "600", paddingRight: 50, marginBottom: 20, lineHeight: 21 },
+  specialBtn:         { alignSelf: "flex-start", backgroundColor: "#fff", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 18 },
+  specialBtnText:     { color: "#EC4899", fontSize: 15, fontWeight: "900" },
 });
+

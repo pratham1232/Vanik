@@ -79,6 +79,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
   const routeNames = state.routes.map((r: any) => r.name);
 
+<<<<<<< Updated upstream
   return (
     <>
       <CreateSheet visible={showCreate} onClose={() => setShowCreate(false)} isLoggedIn={isLoggedIn} />
@@ -131,7 +132,53 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
             </Pressable>
           );
         })}
+=======
+  const handleCreatePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Animated.sequence([
+      Animated.spring(createScale, { toValue: 0.85, useNativeDriver: true, speed: 60 }),
+      Animated.spring(createScale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 12 }),
+    ]).start();
+    setShowCreate(true);
+  };
+
+  return (
+    <>
+      <View style={[styles.tabBarContainer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <BlurView intensity={Platform.OS === 'ios' ? 80 : 100} tint="dark" style={[styles.tabBar, { borderColor: colors.glassBorder }]}>
+          {tabs.map((tab) => {
+            if (tab.name === "_create") {
+              return (
+                <Pressable key="create" style={styles.tabItem} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setShowCreate(true); }}>
+                  <LinearGradient colors={[colors.primary, colors.accent]} style={styles.createBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                    <Feather name="plus" size={24} color="#fff" />
+                  </LinearGradient>
+                </Pressable>
+              );
+            }
+
+            const route = state.routes.find((r: any) => r.name === tab.name);
+            const isFocused = state.index === state.routes.indexOf(route);
+
+            return (
+              <Pressable
+                key={tab.name}
+                style={styles.tabItem}
+                onPress={() => {
+                  if (route && !isFocused) {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    navigation.navigate(tab.name);
+                  }
+                }}
+              >
+                <TabIcon name={tab.icon} focused={isFocused} colors={colors} badge={tab.badge} />
+              </Pressable>
+            );
+          })}
+        </BlurView>
+>>>>>>> Stashed changes
       </View>
+      <CreateSheet visible={showCreate} onClose={() => setShowCreate(false)} isLoggedIn={isLoggedIn} />
     </>
   );
 }
@@ -149,6 +196,7 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+<<<<<<< Updated upstream
   tabBar:    { flexDirection: "row", alignItems: "center", borderTopWidth: 1, paddingTop: 6 },
   tabItem:   { flex: 1, alignItems: "center", gap: 2, paddingTop: 2 },
   iconWrap:  { width: 44, height: 32, alignItems: "center", justifyContent: "center", position: "relative" },
@@ -166,4 +214,23 @@ const styles = StyleSheet.create({
   sheetIcon:     { width: 52, height: 52, borderRadius: 16, alignItems: "center", justifyContent: "center" },
   sheetRowLabel: { fontSize: 15, fontWeight: "700" },
   sheetRowSub:   { fontSize: 12, marginTop: 1 },
+=======
+  tabBarContainer:  { position: "absolute", bottom: 0, left: 0, right: 0, alignItems: "center" },
+  tabBar:           { flexDirection: "row", width: "92%", height: 64, borderRadius: 32, borderWidth: 1, overflow: "hidden", marginBottom: 8, elevation: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  tabItem:          { flex: 1, alignItems: "center", justifyContent: "center" },
+  createBtn:        { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", elevation: 4, shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 6 },
+  iconWrap:         { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  activeGlow:       { position: "absolute", width: 32, height: 32, borderRadius: 16 },
+  badge:            { position: "absolute", top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 4, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#000" },
+  badgeText:         { color: "#fff", fontSize: 9, fontWeight: "900" },
+  sheetOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" },
+  sheet:        { borderTopLeftRadius: 28, borderTopRightRadius: 28, borderWidth: 1, paddingTop: 10 },
+  sheetHandle:  { width: 40, height: 4, borderRadius: 2, alignSelf: "center", marginBottom: 16 },
+  sheetTitle:   { fontSize: 20, fontWeight: "900", paddingHorizontal: 20, marginBottom: 8 },
+  sheetRow:     { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1 },
+  sheetIcon:    { width: 52, height: 52, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  sheetRowLabel:{ fontSize: 15, fontWeight: "700" },
+  sheetRowSub:  { fontSize: 12, marginTop: 1 },
+  sheetArrow:   { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
+>>>>>>> Stashed changes
 });

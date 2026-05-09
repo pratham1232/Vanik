@@ -1,5 +1,7 @@
 import { Feather } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -9,6 +11,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -16,7 +19,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
-import { CHAT_THREADS, STATUSES, STORIES } from "@/data/mockData";
+import { useCommunity } from "@/context/CommunityContext";
+import { useChat } from "@/context/ChatContext";
+import { STATUSES, STORIES } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
 
 const { width } = Dimensions.get("window");
@@ -111,7 +116,7 @@ const qStyles = StyleSheet.create({
 });
 
 /* ── ChatRow ─────────────────────────────────────────────── */
-function ChatRow({ chat, colors, isSeller }: { chat: typeof CHAT_THREADS[number]; colors: any; isSeller: boolean }) {
+function ChatRow({ chat, colors, isSeller }: { chat: any; colors: any; isSeller: boolean }) {
   const hasUnread = chat.unread > 0;
 
   /* Label for seller view */
@@ -126,17 +131,32 @@ function ChatRow({ chat, colors, isSeller }: { chat: typeof CHAT_THREADS[number]
 
   return (
     <Pressable
-      style={[styles.chatRow, { borderBottomColor: colors.border }, hasUnread && { backgroundColor: colors.primary + "07" }]}
+      style={[
+        styles.chatRow,
+        {
+          backgroundColor: hasUnread ? colors.primary + "12" : "rgba(255,255,255,0.045)",
+          borderColor: hasUnread ? colors.primary + "45" : "rgba(255,255,255,0.08)",
+        },
+      ]}
       onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push(`/chat/${chat.id}`); }}
       onLongPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
     >
+      {hasUnread && (
+        <LinearGradient
+          colors={[colors.primary + "35", "transparent"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.chatRowGlow}
+          pointerEvents="none"
+        />
+      )}
       <View style={{ position: "relative" }}>
         <Image source={{ uri: chat.avatar }} style={[styles.chatAvatar, chat.isGroup && { borderRadius: 18 }]} />
         {chat.online && !chat.isGroup && (
-          <View style={[styles.onlineDot, { backgroundColor: "#10B981", borderColor: colors.background }]} />
+          <View style={[styles.onlineDot, { backgroundColor: "#10B981", borderColor: "#050510" }]} />
         )}
         {chat.isGroup && (
-          <View style={[styles.groupBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+          <View style={[styles.groupBadge, { backgroundColor: "#8B5CF6", borderColor: "#050510" }]}>
             <Feather name="users" size={8} color="#fff" />
           </View>
         )}
@@ -160,7 +180,7 @@ function ChatRow({ chat, colors, isSeller }: { chat: typeof CHAT_THREADS[number]
           </View>
           <View style={styles.chatTimeRow}>
             {chat.lastMsgFrom === "me" && (
-              <Feather name="check" size={12} color={hasUnread ? colors.primary : colors.mutedForeground} />
+              <Feather name="check" size={12} color={hasUnread ? colors.primary : "#10B981"} />
             )}
             <Text style={[styles.chatTime, { color: hasUnread ? colors.primary : colors.mutedForeground, fontWeight: hasUnread ? "700" : "400" }]}>
               {chat.time}
@@ -184,6 +204,7 @@ function ChatRow({ chat, colors, isSeller }: { chat: typeof CHAT_THREADS[number]
                 <Text style={styles.unreadBadgeText}>{chat.unread > 99 ? "99+" : chat.unread}</Text>
               </View>
             )}
+            <Feather name="chevron-right" size={14} color="rgba(255,255,255,0.22)" />
           </View>
         </View>
       </View>
@@ -196,6 +217,8 @@ export default function InboxScreen() {
   const colors   = useColors();
   const insets   = useSafeAreaInsets();
   const { user } = useAuth();
+  const { friends, communities } = useCommunity();
+  const { threads } = useChat();
   const isSeller = user?.role === "seller";
 
   const [activeTab,       setActiveTab]       = useState(0);
@@ -204,68 +227,84 @@ export default function InboxScreen() {
   const [showNewChat,     setShowNewChat]     = useState(false);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
-  const filtered   = CHAT_THREADS.filter((c) => search.length < 2 || c.name.toLowerCase().includes(search.toLowerCase()));
-  const totalUnread = CHAT_THREADS.reduce((s, c) => s + c.unread, 0);
-  const pinned     = filtered.filter((c) => c.isPinned);
-  const unpinned   = filtered.filter((c) => !c.isPinned);
+  const filtered   = threads.filter((c: any) => search.length < 2 || c.name.toLowerCase().includes(search.toLowerCase()));
+  const totalUnread = threads.reduce((s: number, c: any) => s + c.unread, 0);
+  const onlineNow = threads.filter((c: any) => c.online).length;
+  const pinned     = filtered.filter((c: any) => (c as any).isPinned);
+  const unpinned   = filtered.filter((c: any) => !(c as any).isPinned);
 
   const TABS = isSeller
     ? ["Chats", "Broadcast", "Status", "Calls"]
-    : ["Chats", "Status", "Orders", "Calls"];
+    : ["Chats", "Community", "Orders", "Calls"];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: "#050510" }]}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* ── Root Aura Gradient ── */}
+      <LinearGradient 
+        colors={["#0A0A1F", "#050510", "#000000"]} 
+        style={StyleSheet.absoluteFillObject} 
+      />
+      <View style={styles.topAura}>
+        <LinearGradient 
+          colors={["rgba(139,92,246,0.12)", "transparent"]} 
+          style={StyleSheet.absoluteFillObject} 
+        />
+      </View>
+
       {isSeller && <QuickReplySheet visible={showQuickReply} onClose={() => setShowQuickReply(false)} />}
 
       {/* ── Header ── */}
-      <View style={[styles.header, { paddingTop: topPad, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: topPad }]}>
         <View style={styles.headerLeft}>
-          <Text style={[styles.logo, { color: colors.foreground }]}>
-            <Text style={{ color: colors.primary }}>V</Text>anik
+          <Text style={styles.logo}>
+            <Text style={{ color: "#E9D5FF" }}>V</Text>anik
           </Text>
           {isSeller && (
-            <View style={[styles.businessBadge, { backgroundColor: colors.primary }]}>
+            <View style={[styles.businessBadge, { backgroundColor: "#8B5CF6" }]}>
               <Feather name="briefcase" size={9} color="#fff" />
               <Text style={styles.businessBadgeText}>Business</Text>
             </View>
           )}
           {totalUnread > 0 && (
-            <View style={[styles.unreadPill, { backgroundColor: colors.live }]}>
+            <View style={[styles.unreadPill, { backgroundColor: "#FF3B5C" }]}>
               <Text style={styles.unreadPillText}>{totalUnread}</Text>
             </View>
           )}
         </View>
         <View style={styles.headerRight}>
           {isSeller && (
-            <Pressable style={[styles.hBtn, { backgroundColor: colors.primary + "20" }]} onPress={() => setShowQuickReply(true)}>
-              <Feather name="zap" size={17} color={colors.primary} />
+            <Pressable style={[styles.hBtn, { backgroundColor: "rgba(139,92,246,0.2)" }]} onPress={() => setShowQuickReply(true)}>
+              <Feather name="zap" size={17} color="#A78BFA" />
             </Pressable>
           )}
-          <Pressable style={[styles.hBtn, { backgroundColor: colors.muted }]} onPress={() => router.push("/notifications")}>
-            <Feather name="bell" size={17} color={colors.foreground} />
+          <Pressable style={[styles.hBtn, { backgroundColor: "rgba(255,255,255,0.1)" }]} onPress={() => router.push("/notifications")}>
+            <Feather name="bell" size={17} color="#fff" />
           </Pressable>
-          <Pressable style={[styles.hBtn, { backgroundColor: colors.muted }]}>
-            <Feather name="camera" size={17} color={colors.foreground} />
+          <Pressable style={[styles.hBtn, { backgroundColor: "rgba(255,255,255,0.1)" }]}>
+            <Feather name="camera" size={17} color="#fff" />
           </Pressable>
-          <Pressable style={[styles.hBtn, { backgroundColor: colors.muted }]}>
-            <Feather name="more-vertical" size={17} color={colors.foreground} />
+          <Pressable style={[styles.hBtn, { backgroundColor: "rgba(255,255,255,0.1)" }]}>
+            <Feather name="more-vertical" size={17} color="#fff" />
           </Pressable>
         </View>
       </View>
 
       {/* ── Tabs ── */}
-      <View style={[styles.tabRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+      <View style={styles.tabRow}>
+        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
         {TABS.map((tab, i) => (
           <Pressable
             key={tab}
-            style={[styles.tab, i === activeTab && { borderBottomWidth: 2.5, borderBottomColor: colors.primary }]}
+            style={[styles.tab, i === activeTab && { borderBottomWidth: 3, borderBottomColor: "#8B5CF6" }]}
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setActiveTab(i); }}
           >
-            <Text style={[styles.tabText, { color: i === activeTab ? colors.primary : colors.mutedForeground, fontWeight: i === activeTab ? "700" : "400" }]}>
+            <Text style={[styles.tabText, { color: i === activeTab ? "#fff" : "rgba(255,255,255,0.5)", fontWeight: i === activeTab ? "800" : "600" }]}>
               {tab}
             </Text>
             {tab === "Chats" && totalUnread > 0 && (
-              <View style={[styles.tabDot, { backgroundColor: colors.live }]}>
+              <View style={[styles.tabDot, { backgroundColor: "#FF3B5C" }]}>
                 <Text style={styles.tabDotText}>{totalUnread}</Text>
               </View>
             )}
@@ -280,20 +319,59 @@ export default function InboxScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 100 : 90 }}>
 
           {/* Search bar */}
-          <View style={[styles.searchBar, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-            <Feather name="search" size={15} color={colors.mutedForeground} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.foreground }]}
-              placeholder="Search messages..."
-              placeholderTextColor={colors.mutedForeground}
-              value={search}
-              onChangeText={setSearch}
+          <View style={styles.searchSection}>
+            <BlurView intensity={20} tint="dark" style={styles.searchPill}>
+              <Feather name="search" size={15} color="rgba(255,255,255,0.4)" />
+              <TextInput
+                style={[styles.searchInput, { color: "#fff" }]}
+                placeholder="Search messages..."
+                placeholderTextColor="rgba(255,255,255,0.4)"
+                value={search}
+                onChangeText={setSearch}
+              />
+              {search.length > 0 && (
+                <Pressable onPress={() => setSearch("")}>
+                  <Feather name="x-circle" size={16} color="rgba(255,255,255,0.4)" />
+                </Pressable>
+              )}
+            </BlurView>
+          </View>
+
+          <View style={styles.chatOverview}>
+            <LinearGradient
+              colors={["rgba(139,92,246,0.22)", "rgba(59,130,246,0.08)", "rgba(255,255,255,0.035)"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFillObject}
             />
-            {search.length > 0 && (
-              <Pressable onPress={() => setSearch("")}>
-                <Feather name="x-circle" size={16} color={colors.mutedForeground} />
+            <View style={styles.overviewTop}>
+              <View>
+                <Text style={styles.overviewEyebrow}>{isSeller ? "CUSTOMER DESK" : "SOCIAL SHOPPING"}</Text>
+                <Text style={styles.overviewTitle}>{isSeller ? "Reply faster, sell smoother" : "Your chats are ready"}</Text>
+              </View>
+              <Pressable
+                style={styles.overviewAction}
+                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push("/chat/c1"); }}
+              >
+                <Feather name="edit-3" size={16} color="#fff" />
               </Pressable>
-            )}
+            </View>
+            <View style={styles.overviewStats}>
+              <View style={styles.overviewStat}>
+                <Text style={styles.overviewStatValue}>{filtered.length}</Text>
+                <Text style={styles.overviewStatLabel}>Chats</Text>
+              </View>
+              <View style={styles.overviewDivider} />
+              <View style={styles.overviewStat}>
+                <Text style={styles.overviewStatValue}>{totalUnread}</Text>
+                <Text style={styles.overviewStatLabel}>Unread</Text>
+              </View>
+              <View style={styles.overviewDivider} />
+              <View style={styles.overviewStat}>
+                <Text style={styles.overviewStatValue}>{onlineNow}</Text>
+                <Text style={styles.overviewStatLabel}>Online</Text>
+              </View>
+            </View>
           </View>
 
           {/* ── SELLER ONLY: Labels filter ── */}
@@ -356,7 +434,9 @@ export default function InboxScreen() {
                 <Feather name="bookmark" size={11} color={colors.mutedForeground} />
                 <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>PINNED</Text>
               </View>
-              {pinned.map((chat) => <ChatRow key={chat.id} chat={chat} colors={colors} isSeller={isSeller} />)}
+              <View style={styles.chatList}>
+                {pinned.map((chat) => <ChatRow key={chat.id} chat={chat} colors={colors} isSeller={isSeller} />)}
+              </View>
             </>
           )}
 
@@ -367,7 +447,9 @@ export default function InboxScreen() {
               {isSeller ? "CUSTOMERS" : "ALL MESSAGES"}
             </Text>
           </View>
-          {unpinned.map((chat) => <ChatRow key={chat.id} chat={chat} colors={colors} isSeller={isSeller} />)}
+          <View style={styles.chatList}>
+            {unpinned.map((chat) => <ChatRow key={chat.id} chat={chat} colors={colors} isSeller={isSeller} />)}
+          </View>
 
           {/* Activity feed */}
           <View style={[styles.sectionHeader, { marginTop: 6 }]}>
@@ -461,68 +543,55 @@ export default function InboxScreen() {
             </Pressable>
           </ScrollView>
         ) : (
-          /* BUYER: Status (WhatsApp status tab) */
+          /* BUYER: Community Tab */
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 90 }}>
-            <View style={[styles.myStatus, { borderBottomColor: colors.border }]}>
-              <View style={styles.myStatusLeft}>
-                <Image source={{ uri: "https://i.pravatar.cc/100?img=60" }} style={styles.statusAvatar} />
-                <View style={[styles.statusAddBtn, { backgroundColor: colors.primary, borderColor: colors.background }]}>
-                  <Text style={styles.statusAddPlus}>+</Text>
-                </View>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.statusName, { color: colors.foreground }]}>My Status</Text>
-                <Text style={[styles.statusSub, { color: colors.mutedForeground }]}>Tap to add status update</Text>
-              </View>
-              <View style={styles.myStatusActions}>
-                <Pressable style={[styles.hBtn, { backgroundColor: colors.muted }]}>
-                  <Feather name="camera" size={16} color={colors.foreground} />
-                </Pressable>
-                <Pressable style={[styles.hBtn, { backgroundColor: colors.muted }]} onPress={() => router.push("/add-story")}>
-                  <Feather name="edit-2" size={15} color={colors.foreground} />
-                </Pressable>
-              </View>
+            {/* Friends row */}
+            <View style={[styles.sectionHeader, { marginTop: 10 }]}>
+              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>YOUR FRIENDS</Text>
             </View>
-
-            <View style={[styles.sectionHeader, { marginTop: 4 }]}>
-              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>RECENT UPDATES</Text>
-            </View>
-            {STATUSES.map((s) => (
-              <Pressable key={s.id} style={[styles.statusRow, { borderBottomColor: colors.border }]}
-                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push(`/story/${s.id}`); }}>
-                <View style={[styles.statusRing, { borderColor: s.viewed ? colors.border : colors.primary }]}>
-                  <Image source={{ uri: s.avatar }} style={styles.statusRingImg} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 14 }}>
+              <Pressable style={styles.addFriendBtn} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
+                <View style={[styles.addFriendIcon, { backgroundColor: colors.primary + "20" }]}>
+                  <Feather name="plus" size={24} color={colors.primary} />
                 </View>
-                <View style={{ flex: 1, gap: 3 }}>
-                  <View style={styles.statusNameRow}>
-                    <Text style={[styles.statusName, { color: colors.foreground }]}>{s.name}</Text>
-                    {s.isBusiness && <Feather name="check-circle" size={12} color={colors.primary} />}
-                    {s.isBusiness && (
-                      <View style={[styles.bizTag, { backgroundColor: colors.primary + "18" }]}>
-                        <Text style={[styles.bizTagText, { color: colors.primary }]}>Shop</Text>
-                      </View>
+                <Text style={[styles.addFriendText, { color: colors.primary }]}>Add Friend</Text>
+              </Pressable>
+              {friends.map((f) => (
+                <Pressable key={f.id} style={styles.friendCol} onPress={() => router.push(`/chat/${f.id}`)}>
+                  <View style={styles.friendAvatarWrap}>
+                    <Image source={{ uri: f.avatar }} style={styles.friendAvatar} />
+                    {f.status !== "offline" && (
+                      <View style={[styles.onlineDot, { backgroundColor: f.status === "online" ? "#10B981" : "#F59E0B", borderColor: "#050510", borderWidth: 2.5 }]} />
                     )}
                   </View>
-                  <Text style={[styles.statusSub, { color: colors.mutedForeground }]}>{s.time} · {s.count} update{s.count > 1 ? "s" : ""}</Text>
-                </View>
-                {!s.viewed && <View style={[styles.unseenDot, { backgroundColor: colors.primary }]} />}
-              </Pressable>
-            ))}
-
-            <View style={[styles.sectionHeader, { marginTop: 8 }]}>
-              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>STORIES</Text>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.storiesRow}>
-              {STORIES.filter((s) => !s.isYou && s.storyCount > 0).map((s) => (
-                <Pressable key={s.id} style={styles.storyBubble}
-                  onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push(`/story/${s.id}`); }}>
-                  <View style={[styles.storyBubbleRing, { borderColor: s.seen ? colors.border : colors.primary }]}>
-                    <Image source={{ uri: s.avatar }} style={styles.storyBubbleImg} />
-                  </View>
-                  <Text style={[styles.storyBubbleName, { color: colors.mutedForeground }]} numberOfLines={1}>{s.name}</Text>
+                  <Text style={[styles.friendName, { color: "#fff" }]} numberOfLines={1}>{f.name.split(" ")[0]}</Text>
                 </Pressable>
               ))}
             </ScrollView>
+
+            <View style={[styles.sectionHeader, { marginTop: 20 }]}>
+              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>DISCOVER COMMUNITIES</Text>
+            </View>
+            {communities.map((c) => (
+              <Pressable key={c.id} style={[styles.communityCard, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
+                <Image source={{ uri: c.avatar }} style={styles.communityAvatar} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <Text style={[styles.communityName, { color: colors.foreground }]} numberOfLines={1}>{c.name}</Text>
+                    {c.isJoined && (
+                      <View style={[styles.joinedBadge, { backgroundColor: colors.primary + "15" }]}>
+                        <Text style={[styles.joinedBadgeText, { color: colors.primary }]}>Joined</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.communityDesc, { color: colors.mutedForeground }]} numberOfLines={2}>{c.description}</Text>
+                  <Text style={[styles.communityCount, { color: colors.mutedForeground }]}>{c.memberCount} members • {c.category}</Text>
+                </View>
+                <Pressable style={[styles.joinBtn, { backgroundColor: c.isJoined ? colors.muted : colors.primary }]}>
+                  <Text style={[styles.joinBtnText, { color: c.isJoined ? colors.foreground : "#fff" }]}>{c.isJoined ? "Open" : "Join"}</Text>
+                </Pressable>
+              </Pressable>
+            ))}
           </ScrollView>
         )
       )}
@@ -706,6 +775,7 @@ export default function InboxScreen() {
 
 const styles = StyleSheet.create({
   container:          { flex: 1 },
+  topAura:            { position: "absolute", top: 0, left: 0, right: 0, height: 340 },
   /* Header */
   header:             { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, paddingBottom: 10, paddingTop: 8, borderBottomWidth: 1 },
   headerLeft:         { flexDirection: "row", alignItems: "center", gap: 7 },
@@ -723,8 +793,20 @@ const styles = StyleSheet.create({
   tabDot:             { minWidth: 17, height: 17, borderRadius: 9, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
   tabDotText:         { color: "#fff", fontSize: 9, fontWeight: "700" },
   /* Search */
-  searchBar:          { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 14, marginTop: 10, marginBottom: 4, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 14, borderWidth: 1 },
-  searchInput:        { flex: 1, fontSize: 14 },
+  searchSection:      { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 6 },
+  searchPill:         { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  searchInput:        { flex: 1, fontSize: 14, fontWeight: "500" },
+  /* Chat overview */
+  chatOverview:       { marginHorizontal: 14, marginTop: 8, marginBottom: 6, padding: 16, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  overviewTop:        { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
+  overviewEyebrow:    { color: "rgba(255,255,255,0.48)", fontSize: 10, fontWeight: "800", letterSpacing: 1 },
+  overviewTitle:      { color: "#fff", fontSize: 18, fontWeight: "900", marginTop: 3, letterSpacing: -0.2 },
+  overviewAction:     { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(139,92,246,0.85)" },
+  overviewStats:      { flexDirection: "row", alignItems: "center", borderRadius: 14, backgroundColor: "rgba(0,0,0,0.18)", paddingVertical: 10 },
+  overviewStat:       { flex: 1, alignItems: "center", gap: 2 },
+  overviewStatValue:  { color: "#fff", fontSize: 18, fontWeight: "900" },
+  overviewStatLabel:  { color: "rgba(255,255,255,0.55)", fontSize: 11, fontWeight: "700" },
+  overviewDivider:    { width: 1, height: 30, backgroundColor: "rgba(255,255,255,0.12)" },
   /* Section headers */
   sectionHeader:      { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 6 },
   sectionLabel:       { fontSize: 10.5, fontWeight: "700", letterSpacing: 0.8 },
@@ -744,16 +826,18 @@ const styles = StyleSheet.create({
   orderStatusDot:     { width: 6, height: 6, borderRadius: 3 },
   orderTrackStatus:   { fontSize: 11, fontWeight: "700" },
   orderTrackEta:      { fontSize: 10 },
-  /* Chat row */
-  chatRow:            { flexDirection: "row", alignItems: "center", paddingHorizontal: 14, paddingVertical: 11, gap: 12, borderBottomWidth: 1 },
-  chatAvatar:         { width: 52, height: 52, borderRadius: 26 },
-  onlineDot:          { position: "absolute", bottom: 1, right: 1, width: 13, height: 13, borderRadius: 7, borderWidth: 2.5 },
-  groupBadge:         { position: "absolute", bottom: 0, right: -2, width: 17, height: 17, borderRadius: 9, alignItems: "center", justifyContent: "center", borderWidth: 2 },
+  /* Chats */
+  chatList:           { paddingHorizontal: 14, gap: 10 },
+  chatRow:            { position: "relative", flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 18, borderWidth: 1, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.14, shadowRadius: 8, elevation: 2 },
+  chatRowGlow:        { position: "absolute", left: 0, top: 0, bottom: 0, width: "70%" },
+  chatAvatar:         { width: 54, height: 54, borderRadius: 27, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.16)" },
+  onlineDot:          { position: "absolute", bottom: 1, right: 1, width: 14, height: 14, borderRadius: 7, borderWidth: 2 },
+  groupBadge:         { position: "absolute", bottom: -1, right: -1, width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center", borderWidth: 2 },
+  chatTop:            { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  chatNameRow:        { flex: 1, flexDirection: "row", alignItems: "center", gap: 5 },
+  chatName:           { flexShrink: 1, fontSize: 14.5 },
   bizBadge:           { paddingHorizontal: 5, paddingVertical: 2, borderRadius: 6, borderWidth: 1 },
-  bizBadgeText:       { fontSize: 8, fontWeight: "800" },
-  chatTop:            { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  chatNameRow:        { flexDirection: "row", alignItems: "center", gap: 4, flex: 1, marginRight: 6 },
-  chatName:           { fontSize: 15, flex: 1 },
+  bizBadgeText:       { fontSize: 8, fontWeight: "900" },
   chatTimeRow:        { flexDirection: "row", alignItems: "center", gap: 3 },
   chatTime:           { fontSize: 11.5 },
   chatBottom:         { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
@@ -838,4 +922,21 @@ const styles = StyleSheet.create({
   callbackBtn:        { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   /* FAB */
   fab:                { position: "absolute", bottom: Platform.OS === "web" ? 110 : 90, right: 18, width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", elevation: 8 },
+  /* Community */
+  addFriendBtn:       { width: 64, alignItems: "center", gap: 6 },
+  addFriendIcon:      { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center" },
+  addFriendText:      { fontSize: 11, fontWeight: "700" },
+  friendCol:          { alignItems: "center", gap: 8, width: 68 },
+  friendAvatarWrap:   { position: "relative", padding: 3, borderRadius: 34, borderWidth: 1.5, borderColor: "rgba(139,92,246,0.3)" },
+  friendAvatar:       { width: 54, height: 54, borderRadius: 27 },
+  friendName:         { fontSize: 11, fontWeight: "600", textAlign: "center", opacity: 0.8 },
+  communityCard:      { flexDirection: "row", alignItems: "center", marginHorizontal: 14, marginBottom: 10, padding: 14, borderRadius: 16, borderWidth: 1, gap: 12 },
+  communityAvatar:    { width: 60, height: 60, borderRadius: 16 },
+  communityName:      { fontSize: 15, fontWeight: "700", flex: 1 },
+  joinedBadge:        { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  joinedBadgeText:    { fontSize: 9, fontWeight: "800" },
+  communityDesc:      { fontSize: 12, lineHeight: 16 },
+  communityCount:     { fontSize: 11, marginTop: 2 },
+  joinBtn:            { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
+  joinBtnText:        { fontSize: 13, fontWeight: "700" },
 });

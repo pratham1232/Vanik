@@ -1,5 +1,7 @@
 import { Feather } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -7,6 +9,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -50,26 +53,39 @@ export default function ExploreScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: topPad, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <View style={[styles.searchBox, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-          <Feather name="search" size={16} color={colors.mutedForeground} />
+    <View style={[styles.container, { backgroundColor: "#050510" }]}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* ── Root Aura Gradient ── */}
+      <LinearGradient 
+        colors={["#0A0A1F", "#050510", "#000000"]} 
+        style={StyleSheet.absoluteFillObject} 
+      />
+      <View style={styles.topAura}>
+        <LinearGradient 
+          colors={["rgba(139,92,246,0.12)", "transparent"]} 
+          style={StyleSheet.absoluteFillObject} 
+        />
+      </View>
+
+      {/* ── Glass Header ── */}
+      <View style={[styles.header, { paddingTop: topPad }]}>
+        <BlurView intensity={30} tint="dark" style={styles.searchBar}>
+          <Feather name="search" size={18} color="rgba(255,255,255,0.4)" />
           <TextInput
-            style={[styles.searchInput, { color: colors.foreground }]}
-            placeholder="Search products, brands, hashtags..."
-            placeholderTextColor={colors.mutedForeground}
+            style={[styles.searchInput, { color: "#fff" }]}
+            placeholder="Search fashion, beauty, home..."
+            placeholderTextColor="rgba(255,255,255,0.4)"
             value={query}
             onChangeText={setQuery}
-            returnKeyType="search"
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery("")}>
-              <Feather name="x" size={16} color={colors.mutedForeground} />
+              <Feather name="x-circle" size={18} color="rgba(255,255,255,0.4)" />
             </Pressable>
           )}
-        </View>
-        <Pressable style={[styles.filterBtn, { backgroundColor: colors.primary }]}>
+        </BlurView>
+        <Pressable style={[styles.filterBtn, { backgroundColor: "#8B5CF6" }]}>
           <Feather name="sliders" size={16} color="#fff" />
         </Pressable>
       </View>
@@ -239,53 +255,54 @@ export default function ExploreScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingBottom: 12, paddingTop: 10, borderBottomWidth: 1 },
-  searchBox: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 14, borderWidth: 1 },
-  searchInput: { flex: 1, fontSize: 14 },
-  filterBtn: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center" },
-  tabsRow: { paddingHorizontal: 14, paddingVertical: 10, gap: 8 },
-  tabPill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
-  tabPillText: { fontSize: 13, fontWeight: "600" },
-  bannerRow: { paddingHorizontal: 14, paddingVertical: 12, gap: 10 },
-  dealBanner: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 16, borderWidth: 1, width: 240 },
-  dealIcon: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  dealLabel: { fontSize: 14, fontWeight: "800" },
-  dealSub: { fontSize: 12 },
-  section: { paddingHorizontal: 14, marginBottom: 8 },
-  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12, marginTop: 8 },
-  sectionTitle: { fontSize: 17, fontWeight: "700" },
-  seeAll: { fontSize: 13, fontWeight: "600" },
-  hashtagChip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
-  hashtagText: { fontSize: 14, fontWeight: "700" },
-  hashtagCount: { fontSize: 12 },
-  sellerCard: { width: 110, alignItems: "center", gap: 6, padding: 12, borderRadius: 16, borderWidth: 1, position: "relative" },
-  sellerAvatarRing: { borderWidth: 2, borderRadius: 30, padding: 2 },
-  sellerAvatar: { width: 52, height: 52, borderRadius: 26 },
-  sellerCheck: { position: "absolute", top: 10, right: 10, width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center", borderWidth: 2 },
-  sellerName: { fontSize: 12, fontWeight: "700", textAlign: "center" },
-  sellerFollowers: { fontSize: 11, textAlign: "center" },
-  followBtn: { paddingHorizontal: 14, paddingVertical: 5, borderRadius: 12, borderWidth: 1 },
+  topAura: { position: "absolute", top: 0, left: 0, right: 0, height: 400 },
+  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingBottom: 16 },
+  searchBar: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, height: 50, borderRadius: 26, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
+  searchInput: { flex: 1, fontSize: 15, fontWeight: "500" },
+  filterBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 },
+  tabsRow: { paddingHorizontal: 14, paddingVertical: 12, gap: 10 },
+  tabPill: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 22, borderWidth: 1 },
+  tabPillText: { fontSize: 14, fontWeight: "700", letterSpacing: 0.3 },
+  bannerRow: { paddingHorizontal: 14, paddingVertical: 14, gap: 12 },
+  dealBanner: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderRadius: 18, borderWidth: 1, width: 260, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 3 },
+  dealIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  dealLabel: { fontSize: 15, fontWeight: "800", letterSpacing: -0.3 },
+  dealSub: { fontSize: 13, marginTop: 1 },
+  section: { paddingHorizontal: 14, marginBottom: 10 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14, marginTop: 10 },
+  sectionTitle: { fontSize: 19, fontWeight: "900", letterSpacing: -0.4 },
+  seeAll: { fontSize: 13, fontWeight: "700" },
+  hashtagChip: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 22, borderWidth: 1 },
+  hashtagText: { fontSize: 14, fontWeight: "800", letterSpacing: 0.2 },
+  hashtagCount: { fontSize: 12, fontWeight: "600" },
+  sellerCard: { width: 120, alignItems: "center", gap: 8, padding: 12, borderRadius: 18, borderWidth: 1, position: "relative", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  sellerAvatarRing: { borderWidth: 2, borderRadius: 32, padding: 3 },
+  sellerAvatar: { width: 56, height: 56, borderRadius: 28 },
+  sellerCheck: { position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 2 },
+  sellerName: { fontSize: 13, fontWeight: "800", textAlign: "center", letterSpacing: -0.2 },
+  sellerFollowers: { fontSize: 12, textAlign: "center", fontWeight: "600" },
+  followBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 14, borderWidth: 1 },
   followBtnText: { fontSize: 12, fontWeight: "700" },
-  productsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  emptyState: { flex: 1, alignItems: "center", gap: 10, paddingTop: 40, width: "100%" },
-  emptyText: { fontSize: 15 },
-  resellBanner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16 },
-  resellBannerTitle: { color: "#fff", fontSize: 16, fontWeight: "800" },
-  resellBannerSub: { color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 2 },
-  resellStartBtn: { backgroundColor: "#fff", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  resellStartText: { color: "#8B5CF6", fontWeight: "800", fontSize: 13 },
-  supplierCard: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, borderWidth: 1, marginBottom: 10 },
-  supplierImage: { width: 64, height: 64, borderRadius: 12 },
-  supplierName: { fontSize: 14, fontWeight: "700" },
-  supplierPriceRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  wholesaleBadge: { flexDirection: "row", alignItems: "center", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  wholesaleLabel: { fontSize: 11 },
-  wholesalePrice: { fontSize: 12, fontWeight: "700" },
-  sellingBadge: { flexDirection: "row", alignItems: "center", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  sellingLabel: { fontSize: 11 },
-  sellingPrice: { fontSize: 12, fontWeight: "700" },
+  productsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 14, paddingHorizontal: 14 },
+  emptyState: { flex: 1, alignItems: "center", gap: 12, paddingTop: 50, width: "100%" },
+  emptyText: { fontSize: 16, fontWeight: "600" },
+  resellBanner: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 18, borderRadius: 20, marginHorizontal: 14, marginVertical: 16, shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 4 },
+  resellBannerTitle: { color: "#fff", fontSize: 17, fontWeight: "900", letterSpacing: -0.3 },
+  resellBannerSub: { color: "rgba(255,255,255,0.85)", fontSize: 13, marginTop: 3, fontWeight: "500" },
+  resellStartBtn: { backgroundColor: "#fff", paddingHorizontal: 18, paddingVertical: 10, borderRadius: 22, shadowColor: "#fff", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
+  resellStartText: { color: "#8B5CF6", fontWeight: "800", fontSize: 14, letterSpacing: 0.2 },
+  supplierCard: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, marginBottom: 12, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 4, elevation: 2 },
+  supplierImage: { width: 68, height: 68, borderRadius: 14 },
+  supplierName: { fontSize: 15, fontWeight: "800", letterSpacing: -0.2 },
+  supplierPriceRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  wholesaleBadge: { flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  wholesaleLabel: { fontSize: 12, fontWeight: "700" },
+  wholesalePrice: { fontSize: 13, fontWeight: "800" },
+  sellingBadge: { flexDirection: "row", alignItems: "center", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  sellingLabel: { fontSize: 12, fontWeight: "700" },
+  sellingPrice: { fontSize: 13, fontWeight: "800" },
   commissionRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  commissionText: { fontSize: 12, fontWeight: "600" },
-  shareEarnBtn: { flexDirection: "column", alignItems: "center", gap: 4, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12 },
-  shareEarnText: { color: "#fff", fontSize: 11, fontWeight: "700" },
+  commissionText: { fontSize: 13, fontWeight: "700" },
+  shareEarnBtn: { flexDirection: "column", alignItems: "center", gap: 4, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 14, shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 2 },
+  shareEarnText: { color: "#fff", fontSize: 12, fontWeight: "800" },
 });

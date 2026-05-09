@@ -17,6 +17,8 @@ import { useApp } from "@/context/AppContext";
 import { useCart } from "@/context/CartContext";
 import { PRODUCTS, SELLERS, formatPrice } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -44,33 +46,47 @@ export default function ProductDetailScreen() {
 
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
+  const [aiAnalysisVisible, setAiAnalysisVisible] = useState(false);
+
+  // Mock AI Insights
+  const aiInsights = [
+    "✨ Premium build quality rated 9/10 by buyers.",
+    "🔥 Trending in Fashion this week.",
+    "✅ Verified by Vanik AI for authenticity.",
+    "🌟 Top choice for \"Minimalist Style\" lovers."
+  ];
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Back / Actions Header */}
       <View style={[styles.topBar, { paddingTop: Platform.OS === "web" ? 67 : insets.top }]}>
-        <Pressable style={[styles.iconBtn, { backgroundColor: colors.muted }]} onPress={() => router.back()}>
-          <Feather name="arrow-left" size={20} color={colors.foreground} />
+        <LinearGradient
+          colors={["rgba(0,0,0,0.4)", "transparent"]}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <Pressable style={[styles.iconBtn, { backgroundColor: "rgba(0,0,0,0.3)" }]} onPress={() => router.back()}>
+          <Feather name="arrow-left" size={20} color="#fff" />
         </Pressable>
         <View style={styles.topRight}>
           <Pressable
-            style={[styles.iconBtn, { backgroundColor: colors.muted }]}
+            style={[styles.iconBtn, { backgroundColor: "rgba(0,0,0,0.3)" }]}
             onPress={() => router.push("/cart")}
           >
-            <Feather name="shopping-cart" size={20} color={colors.foreground} />
+            <Feather name="shopping-cart" size={20} color="#fff" />
             {count > 0 && (
               <View style={[styles.cartBadge, { backgroundColor: colors.live }]}>
                 <Text style={styles.cartBadgeText}>{count}</Text>
               </View>
             )}
           </Pressable>
-          <Pressable style={[styles.iconBtn, { backgroundColor: colors.muted }]}>
-            <Feather name="share-2" size={20} color={colors.foreground} />
+          <Pressable style={[styles.iconBtn, { backgroundColor: "rgba(0,0,0,0.3)" }]}>
+            <Feather name="share-2" size={20} color="#fff" />
           </Pressable>
           <Pressable
-            style={[styles.iconBtn, { backgroundColor: colors.muted }]}
+            style={[styles.iconBtn, { backgroundColor: "rgba(0,0,0,0.3)" }]}
             onPress={() => toggleWishlist(product.id)}
           >
-            <Feather name="heart" size={20} color={liked ? colors.live : colors.foreground} />
+            <Feather name="heart" size={20} color={liked ? "#FF3B5C" : "#fff"} />
           </Pressable>
         </View>
       </View>
@@ -79,11 +95,20 @@ export default function ProductDetailScreen() {
         {/* Product Image */}
         <View style={styles.imageWrap}>
           <Image source={product.image} style={styles.productImage} resizeMode="cover" />
+          <LinearGradient
+            colors={["transparent", "rgba(0,0,0,0.6)"]}
+            style={styles.imageOverlay}
+          />
           {product.discount > 0 && (
-            <View style={[styles.discountBadge, { backgroundColor: colors.live }]}>
+            <View style={[styles.discountBadge, { backgroundColor: "#FF3B5C" }]}>
               <Text style={styles.discountText}>{product.discount}% OFF</Text>
             </View>
           )}
+          <View style={styles.aiMatchBadge}>
+            <BlurView intensity={60} tint="dark" style={styles.aiMatchInner}>
+              <Text style={styles.aiMatchText}>✨ 98% Match</Text>
+            </BlurView>
+          </View>
         </View>
 
         <View style={styles.content}>
@@ -126,6 +151,41 @@ export default function ProductDetailScreen() {
               {product.stock} items in stock · Free shipping
             </Text>
           </View>
+
+          {/* AI Insights Card */}
+          <Pressable 
+            style={[styles.aiCard, { borderColor: colors.primary + "40" }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setAiAnalysisVisible(!aiAnalysisVisible);
+            }}
+          >
+            <LinearGradient
+              colors={[colors.primary + "15", colors.accent + "15"]}
+              style={StyleSheet.absoluteFillObject}
+            />
+            <View style={styles.aiCardHeader}>
+              <View style={styles.aiSparkWrap}>
+                <Text style={styles.aiSpark}>✨</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.aiCardTitle, { color: colors.foreground }]}>Vanik AI Insights</Text>
+                <Text style={[styles.aiCardSub, { color: colors.mutedForeground }]}>Tap to see detailed analysis</Text>
+              </View>
+              <Feather name={aiAnalysisVisible ? "chevron-up" : "chevron-down"} size={18} color={colors.primary} />
+            </View>
+            
+            {aiAnalysisVisible && (
+              <View style={styles.aiContent}>
+                {aiInsights.map((insight, idx) => (
+                  <View key={idx} style={styles.insightRow}>
+                    <View style={[styles.insightDot, { backgroundColor: colors.primary }]} />
+                    <Text style={[styles.insightText, { color: colors.foreground }]}>{insight}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </Pressable>
 
           {/* Seller */}
           <View style={[styles.sellerCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -253,4 +313,18 @@ const styles = StyleSheet.create({
   addToCartText: { fontSize: 15, fontWeight: "700" },
   buyNowBtn: { flex: 1.2, height: 46, alignItems: "center", justifyContent: "center", borderRadius: 14 },
   buyNowText: { color: "#fff", fontSize: 15, fontWeight: "800" },
+  imageOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, height: 100 },
+  aiMatchBadge: { position: "absolute", bottom: 20, left: 16 },
+  aiMatchInner: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, overflow: "hidden" },
+  aiMatchText: { color: "#fff", fontWeight: "800", fontSize: 13 },
+  aiCard: { borderRadius: 20, overflow: "hidden", borderWidth: 1, padding: 16, marginVertical: 8 },
+  aiCardHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  aiSparkWrap: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(139,92,246,0.2)", alignItems: "center", justifyContent: "center" },
+  aiSpark: { fontSize: 16 },
+  aiCardTitle: { fontSize: 15, fontWeight: "800" },
+  aiCardSub: { fontSize: 12, marginTop: 1 },
+  aiContent: { marginTop: 16, gap: 10 },
+  insightRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  insightDot: { width: 6, height: 6, borderRadius: 3 },
+  insightText: { fontSize: 13, lineHeight: 18 },
 });

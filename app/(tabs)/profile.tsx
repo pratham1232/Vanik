@@ -1,5 +1,7 @@
 import { Feather } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -10,6 +12,7 @@ import {
   Pressable,
   ScrollView,
   Share,
+  StatusBar,
   StyleSheet,
   Switch,
   Text,
@@ -83,65 +86,79 @@ function GuestScreen() {
   ];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: "#050510" }]}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* ── Root Aura Gradient ── */}
+      <LinearGradient 
+        colors={["#0A0A1F", "#050510", "#000000"]} 
+        style={StyleSheet.absoluteFillObject} 
+      />
+      <View style={styles.topAura}>
+        <LinearGradient 
+          colors={["rgba(139,92,246,0.12)", "transparent"]} 
+          style={StyleSheet.absoluteFillObject} 
+        />
+      </View>
+
       {/* Header */}
       <View style={[styles.guestHeader, { paddingTop: topPad + 8 }]}>
-        <Text style={[styles.logo, { color: colors.foreground }]}>
-          <Text style={{ color: colors.primary }}>V</Text>anik
+        <Text style={styles.logo}>
+          <Text style={{ color: "#E9D5FF" }}>V</Text>anik
         </Text>
         <Pressable
-          style={[styles.iconBtn, { backgroundColor: colors.muted }]}
+          style={[styles.iconBtn, { backgroundColor: "rgba(255,255,255,0.1)" }]}
           onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); toggleTheme(); }}
         >
-          <Feather name={isDark ? "sun" : "moon"} size={17} color={colors.foreground} />
+          <Feather name={isDark ? "sun" : "moon"} size={17} color="#fff" />
         </Pressable>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Hero card */}
-        <View style={[styles.guestHero, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.guestAvatarWrap, { backgroundColor: colors.primary + "18" }]}>
-            <Feather name="user" size={44} color={colors.primary} />
+        <BlurView intensity={20} tint="dark" style={styles.guestHero}>
+          <View style={[styles.guestAvatarWrap, { backgroundColor: "rgba(139,92,246,0.2)" }]}>
+            <Feather name="user" size={44} color="#A78BFA" />
           </View>
-          <Text style={[styles.guestHeroTitle, { color: colors.foreground }]}>Join Vanik</Text>
-          <Text style={[styles.guestHeroSub, { color: colors.mutedForeground }]}>
+          <Text style={[styles.guestHeroTitle, { color: "#fff" }]}>Join Vanik</Text>
+          <Text style={[styles.guestHeroSub, { color: "rgba(255,255,255,0.6)" }]}>
             Social commerce — discover, watch, shop and earn all in one place.
           </Text>
 
-          <Pressable style={[styles.signInBtn, { backgroundColor: colors.primary }]} onPress={() => router.push("/auth/login")}>
+          <Pressable style={[styles.signInBtn, { backgroundColor: "#8B5CF6" }]} onPress={() => router.push("/auth/login")}>
             <Feather name="log-in" size={17} color="#fff" />
             <Text style={styles.signInBtnText}>Sign In</Text>
           </Pressable>
 
-          <Pressable style={[styles.registerBtn, { borderColor: colors.primary }]} onPress={() => router.push("/auth/register")}>
-            <Text style={[styles.registerBtnText, { color: colors.primary }]}>Create Account</Text>
+          <Pressable style={[styles.registerBtn, { borderColor: "#8B5CF6" }]} onPress={() => router.push("/auth/register")}>
+            <Text style={[styles.registerBtnText, { color: "#A78BFA" }]}>Create Account</Text>
           </Pressable>
-        </View>
+        </BlurView>
 
         {/* Features */}
-        <Text style={[styles.featuresHeading, { color: colors.mutedForeground }]}>WHAT YOU GET</Text>
+        <Text style={[styles.featuresHeading, { color: "rgba(255,255,255,0.4)" }]}>WHAT YOU GET</Text>
         <View style={styles.featuresGrid}>
           {features.map((f) => (
-            <View key={f.icon} style={[styles.featureCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.featureIcon, { backgroundColor: f.color + "18" }]}>
+            <BlurView key={f.icon} intensity={15} tint="dark" style={styles.featureCard}>
+              <View style={[styles.featureIcon, { backgroundColor: f.color + "25" }]}>
                 <Feather name={f.icon as any} size={22} color={f.color} />
               </View>
-              <Text style={[styles.featureTitle, { color: colors.foreground }]}>{f.title}</Text>
-              <Text style={[styles.featureSub, { color: colors.mutedForeground }]}>{f.sub}</Text>
-            </View>
+              <Text style={[styles.featureTitle, { color: "#fff" }]}>{f.title}</Text>
+              <Text style={[styles.featureSub, { color: "rgba(255,255,255,0.5)" }]}>{f.sub}</Text>
+            </BlurView>
           ))}
         </View>
 
         {/* Demo accounts hint */}
-        <View style={[styles.demoCard, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-          <Feather name="info" size={15} color={colors.primary} />
+        <BlurView intensity={10} tint="dark" style={styles.demoCard}>
+          <Feather name="info" size={15} color="#8B5CF6" />
           <View style={{ flex: 1 }}>
-            <Text style={[styles.demoTitle, { color: colors.foreground }]}>Try demo accounts</Text>
-            <Text style={[styles.demoSub, { color: colors.mutedForeground }]}>
+            <Text style={[styles.demoTitle, { color: "#fff" }]}>Try demo accounts</Text>
+            <Text style={[styles.demoSub, { color: "rgba(255,255,255,0.5)" }]}>
               buyer@vanik.in  ·  seller@vanik.in{"\n"}Password: demo123
             </Text>
           </View>
-        </View>
+        </BlurView>
       </ScrollView>
     </View>
   );
@@ -314,32 +331,35 @@ export default function ProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 90 : 80 }}>
 
         {/* ── Cover ── */}
-        <View style={[styles.cover, { backgroundColor: colors.primary + "25" }]}>
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.primary + "15" }]} />
+        <LinearGradient
+          colors={[colors.primary, colors.accent]}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={styles.cover}
+        >
           {/* Decorative circles */}
-          <View style={[styles.coverCircle1, { backgroundColor: colors.primary + "20" }]} />
-          <View style={[styles.coverCircle2, { backgroundColor: "#FF3B5C20" }]} />
+          <View style={[styles.coverCircle1, { backgroundColor: "rgba(255,255,255,0.1)" }]} />
+          <View style={[styles.coverCircle2, { backgroundColor: "rgba(255,255,255,0.05)" }]} />
 
           <View style={[styles.coverTopBar, { paddingTop: topPad + 8 }]}>
-            <Text style={[styles.coverLogo, { color: colors.foreground }]}>
-              <Text style={{ color: colors.primary }}>V</Text>anik
+            <Text style={[styles.coverLogo, { color: "#fff" }]}>
+              <Text style={{ color: "#E9D5FF" }}>V</Text>anik
             </Text>
             <View style={styles.coverTopRight}>
               <Pressable
-                style={[styles.coverBtn, { backgroundColor: "rgba(0,0,0,0.35)" }]}
+                style={[styles.coverBtn, { backgroundColor: "rgba(0,0,0,0.2)", borderColor: "rgba(255,255,255,0.2)", borderWidth: 1 }]}
                 onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); toggleTheme(); }}
               >
                 <Feather name={isDark ? "sun" : "moon"} size={17} color="#fff" />
               </Pressable>
               <Pressable
-                style={[styles.coverBtn, { backgroundColor: "rgba(0,0,0,0.35)" }]}
+                style={[styles.coverBtn, { backgroundColor: "rgba(0,0,0,0.2)", borderColor: "rgba(255,255,255,0.2)", borderWidth: 1 }]}
                 onPress={() => setShowSettings(true)}
               >
                 <Feather name="settings" size={17} color="#fff" />
               </Pressable>
             </View>
           </View>
-        </View>
+        </LinearGradient>
 
         {/* ── Avatar + Actions ── */}
         <View style={[styles.avatarSection, { backgroundColor: colors.background }]}>
@@ -422,16 +442,23 @@ export default function ProfileScreen() {
         {isSeller && (
           <View style={styles.sellerActions}>
             {[
+<<<<<<< Updated upstream
               { icon: "video",       label: "Go Live",     bg: "#FF3B5C", action: () => router.push("/live/l1") },
               { icon: "plus-circle", label: "Add Product", bg: colors.primary, action: () => router.push("/create") },
               { icon: "bar-chart-2", label: "Analytics",   bg: "#10B981", action: () => {} },
               { icon: "trending-up", label: "Resell",      bg: "#F59E0B", action: () => {} },
+=======
+              { icon: "video",       label: "Go Live",     grad: ["#FF3B5C", "#FF6B81"], action: () => router.push("/live/l1") },
+              { icon: "plus-circle", label: "Add Product", grad: [colors.primary, colors.accent], action: () => router.push("/create") },
+              { icon: "bar-chart-2", label: "Dashboard",  grad: ["#10B981", "#34D399"], action: () => router.push("/seller-dashboard") },
+              { icon: "trending-up", label: "Resell",      grad: ["#F59E0B", "#FBBF24"], action: () => router.push("/explore") },
+>>>>>>> Stashed changes
             ].map((a) => (
-              <Pressable key={a.label} style={[styles.sellerAction, { backgroundColor: a.bg + "14", borderColor: a.bg + "35" }]} onPress={a.action}>
-                <View style={[styles.sellerActionIcon, { backgroundColor: a.bg }]}>
+              <Pressable key={a.label} style={styles.sellerAction} onPress={a.action}>
+                <LinearGradient colors={a.grad as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.sellerActionIcon}>
                   <Feather name={a.icon as any} size={15} color="#fff" />
-                </View>
-                <Text style={[styles.sellerActionLabel, { color: a.bg }]}>{a.label}</Text>
+                </LinearGradient>
+                <Text style={[styles.sellerActionLabel, { color: a.grad[0] }]}>{a.label}</Text>
               </Pressable>
             ))}
           </View>
@@ -641,155 +668,156 @@ const PROD_CARD = (width - 44) / 2;
 
 const styles = StyleSheet.create({
   container:          { flex: 1 },
+  topAura:            { position: "absolute", top: 0, left: 0, right: 0, height: 400 },
 
   /* ── Guest ── */
-  guestHeader:        { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 8 },
-  logo:               { fontSize: 26, fontWeight: "900", letterSpacing: 0.5 },
-  iconBtn:            { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
-  guestHero:          { margin: 16, borderRadius: 24, padding: 24, alignItems: "center", gap: 10, borderWidth: 1 },
-  guestAvatarWrap:    { width: 80, height: 80, borderRadius: 40, alignItems: "center", justifyContent: "center", marginBottom: 4 },
-  guestHeroTitle:     { fontSize: 26, fontWeight: "900" },
-  guestHeroSub:       { fontSize: 14, textAlign: "center", lineHeight: 21 },
-  signInBtn:          { flexDirection: "row", alignItems: "center", gap: 8, width: "100%", paddingVertical: 14, borderRadius: 22, justifyContent: "center", marginTop: 6 },
-  signInBtnText:      { color: "#fff", fontSize: 16, fontWeight: "800" },
-  registerBtn:        { width: "100%", paddingVertical: 13, borderRadius: 22, borderWidth: 2, alignItems: "center" },
-  registerBtnText:    { fontSize: 15, fontWeight: "700" },
-  featuresHeading:    { paddingHorizontal: 20, fontSize: 11, fontWeight: "700", letterSpacing: 1, marginBottom: 8, marginTop: 4 },
-  featuresGrid:       { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 16, gap: 10 },
-  featureCard:        { width: (width - 44) / 2, borderRadius: 16, padding: 14, gap: 6, borderWidth: 1 },
-  featureIcon:        { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center" },
-  featureTitle:       { fontSize: 13, fontWeight: "700" },
-  featureSub:         { fontSize: 11, lineHeight: 16 },
-  demoCard:           { flexDirection: "row", alignItems: "flex-start", gap: 10, margin: 16, padding: 14, borderRadius: 16, borderWidth: 1 },
-  demoTitle:          { fontSize: 13, fontWeight: "700", marginBottom: 2 },
-  demoSub:            { fontSize: 12, lineHeight: 18 },
+  guestHeader:        { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, marginBottom: 14 },
+  logo:               { fontSize: 26, fontWeight: "900", letterSpacing: -0.7 },
+  iconBtn:            { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  guestHero:          { margin: 18, padding: 28, borderRadius: 28, alignItems: "center", overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 5 },
+  guestAvatarWrap:    { width: 92, height: 92, borderRadius: 46, alignItems: "center", justifyContent: "center", marginBottom: 18 },
+  guestHeroTitle:     { fontSize: 24, fontWeight: "900", marginBottom: 8, letterSpacing: -0.4 },
+  guestHeroSub:       { fontSize: 15, textAlign: "center", lineHeight: 23, marginBottom: 28 },
+  signInBtn:          { flexDirection: "row", alignItems: "center", gap: 10, width: "100%", height: 54, borderRadius: 18, justifyContent: "center", marginBottom: 14, shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+  signInBtnText:      { color: "#fff", fontSize: 17, fontWeight: "900", letterSpacing: 0.2 },
+  registerBtn:        { width: "100%", height: 50, borderRadius: 16, borderWidth: 1.5, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(139,92,246,0.08)" },
+  registerBtnText:    { fontSize: 15, fontWeight: "900" },
+  featuresHeading:    { marginHorizontal: 18, marginTop: 6, marginBottom: 10, fontSize: 10.5, fontWeight: "900", letterSpacing: 1 },
+  featuresGrid:       { flexDirection: "row", flexWrap: "wrap", gap: 10, paddingHorizontal: 16, marginBottom: 8 },
+  featureCard:        { width: (width - 42) / 2, minHeight: 128, padding: 14, borderRadius: 18, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  featureIcon:        { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", marginBottom: 12 },
+  featureTitle:       { fontSize: 14, fontWeight: "800", letterSpacing: -0.2 },
+  featureSub:         { fontSize: 12, lineHeight: 18 },
+  demoCard:           { flexDirection: "row", alignItems: "flex-start", gap: 12, margin: 16, padding: 16, borderRadius: 18, borderWidth: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  demoTitle:          { fontSize: 14, fontWeight: "800", marginBottom: 3, letterSpacing: -0.2 },
+  demoSub:            { fontSize: 13, lineHeight: 20 },
 
   /* ── Cover ── */
-  cover:              { height: 130, position: "relative", overflow: "hidden" },
+  cover:              { height: 140, position: "relative", overflow: "hidden" },
   coverCircle1:       { position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: 60 },
   coverCircle2:       { position: "absolute", bottom: -20, left: 20, width: 80, height: 80, borderRadius: 40 },
   coverTopBar:        { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
-  coverLogo:          { fontSize: 22, fontWeight: "900", letterSpacing: 0.5 },
-  coverTopRight:      { flexDirection: "row", gap: 8 },
-  coverBtn:           { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  coverLogo:          { fontSize: 24, fontWeight: "900", letterSpacing: 0.5 },
+  coverTopRight:      { flexDirection: "row", gap: 10 },
+  coverBtn:           { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
 
   /* ── Avatar section ── */
-  avatarSection:      { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 12, marginTop: -42 },
-  avatarRing:         { width: 84, height: 84, borderRadius: 42, borderWidth: 4, overflow: "hidden", position: "relative" },
+  avatarSection:      { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 14, marginTop: -46 },
+  avatarRing:         { width: 92, height: 92, borderRadius: 46, borderWidth: 4, overflow: "hidden", position: "relative", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
   avatarImg:          { width: "100%", height: "100%", borderRadius: 42 },
-  verifiedBadge:      { position: "absolute", bottom: 3, right: 3, width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", borderWidth: 2 },
-  actionRow:          { flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 44 },
-  editBtn:            { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  editBtnText:        { color: "#fff", fontSize: 13, fontWeight: "700" },
-  iconCircle:         { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  verifiedBadge:      { position: "absolute", bottom: 2, right: 2, width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 2 },
+  actionRow:          { flexDirection: "row", alignItems: "center", gap: 10, paddingTop: 46 },
+  editBtn:            { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 22, shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
+  editBtnText:        { color: "#fff", fontSize: 14, fontWeight: "800" },
+  iconCircle:         { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 1 },
 
   /* ── User info ── */
-  userInfo:           { paddingHorizontal: 16, paddingTop: 8, gap: 4 },
-  nameRow:            { flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" },
-  userName:           { fontSize: 20, fontWeight: "900" },
-  rolePill:           { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, borderWidth: 1 },
-  rolePillText:       { fontSize: 11, fontWeight: "700" },
-  userHandle:         { fontSize: 14 },
-  userBio:            { fontSize: 14, lineHeight: 20 },
-  addBio:             { fontSize: 14, fontWeight: "600" },
-  metaRow:            { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 },
-  metaDot:            { width: 3, height: 3, borderRadius: 1.5, backgroundColor: "#666" },
-  metaText:           { fontSize: 12 },
+  userInfo:           { paddingHorizontal: 16, paddingTop: 10, gap: 6 },
+  nameRow:            { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
+  userName:           { fontSize: 22, fontWeight: "900", letterSpacing: -0.4 },
+  rolePill:           { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, borderWidth: 1 },
+  rolePillText:       { fontSize: 12, fontWeight: "800", letterSpacing: 0.2 },
+  userHandle:         { fontSize: 15, fontWeight: "600" },
+  userBio:            { fontSize: 15, lineHeight: 22, fontWeight: "500" },
+  addBio:             { fontSize: 15, fontWeight: "700" },
+  metaRow:            { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 },
+  metaDot:            { width: 4, height: 4, borderRadius: 2, backgroundColor: "#666" },
+  metaText:           { fontSize: 13, fontWeight: "600" },
 
   /* ── Stats ── */
-  statsCard:          { flexDirection: "row", marginHorizontal: 16, marginTop: 14, borderRadius: 16, borderWidth: 1, overflow: "hidden" },
-  statCell:           { flex: 1, alignItems: "center", paddingVertical: 14, gap: 2 },
-  statVal:            { fontSize: 16, fontWeight: "900" },
-  statLabel:          { fontSize: 11 },
+  statsCard:          { flexDirection: "row", marginHorizontal: 16, marginTop: 16, borderRadius: 18, borderWidth: 1, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+  statCell:           { flex: 1, alignItems: "center", paddingVertical: 16, gap: 3 },
+  statVal:            { fontSize: 18, fontWeight: "900" },
+  statLabel:          { fontSize: 12, fontWeight: "600" },
 
   /* ── Seller actions ── */
-  sellerActions:      { flexDirection: "row", gap: 8, paddingHorizontal: 16, marginTop: 12 },
-  sellerAction:       { flex: 1, alignItems: "center", paddingVertical: 10, borderRadius: 14, borderWidth: 1, gap: 5 },
-  sellerActionIcon:   { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
-  sellerActionLabel:  { fontSize: 10, fontWeight: "700" },
+  sellerActions:      { flexDirection: "row", gap: 10, paddingHorizontal: 16, marginTop: 14 },
+  sellerAction:       { flex: 1, alignItems: "center", paddingVertical: 12, borderRadius: 16, borderWidth: 1, gap: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+  sellerActionIcon:   { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  sellerActionLabel:  { fontSize: 11, fontWeight: "800", letterSpacing: 0.1 },
 
   /* ── Highlights ── */
-  highlightsRow:      { paddingHorizontal: 16, paddingVertical: 14, gap: 14 },
-  highlight:          { alignItems: "center", gap: 5 },
-  highlightRing:      { width: 62, height: 62, borderRadius: 31, borderWidth: 2, padding: 3 },
-  highlightInner:     { width: "100%", height: "100%", borderRadius: 27, alignItems: "center", justifyContent: "center" },
-  highlightLabel:     { fontSize: 10, fontWeight: "500" },
+  highlightsRow:      { paddingHorizontal: 16, paddingVertical: 16, gap: 16 },
+  highlight:          { alignItems: "center", gap: 6 },
+  highlightRing:      { width: 68, height: 68, borderRadius: 34, borderWidth: 2, padding: 3 },
+  highlightInner:     { width: "100%", height: "100%", borderRadius: 30, alignItems: "center", justifyContent: "center" },
+  highlightLabel:     { fontSize: 11, fontWeight: "700" },
 
   /* ── Resell banner ── */
-  resellBanner:       { flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: 16, marginBottom: 10, padding: 14, borderRadius: 16, borderWidth: 1 },
-  resellIconWrap:     { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  resellTitle:        { fontSize: 14, fontWeight: "800" },
-  resellSub:          { fontSize: 11, lineHeight: 16, marginTop: 1 },
-  resellArrow:        { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
+  resellBanner:       { flexDirection: "row", alignItems: "center", gap: 14, marginHorizontal: 16, marginBottom: 12, padding: 16, borderRadius: 18, borderWidth: 1, shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 3 },
+  resellIconWrap:     { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  resellTitle:        { fontSize: 15, fontWeight: "900", letterSpacing: -0.2 },
+  resellSub:          { fontSize: 12, lineHeight: 18, marginTop: 2, fontWeight: "600" },
+  resellArrow:        { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
 
   /* ── Tabs bar ── */
   tabsBar:            { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1 },
-  tabItem:            { flex: 1, flexDirection: "column", alignItems: "center", paddingVertical: 10, gap: 3 },
-  tabLabel:           { fontSize: 10 },
+  tabItem:            { flex: 1, flexDirection: "column", alignItems: "center", paddingVertical: 12, gap: 3 },
+  tabLabel:           { fontSize: 11, fontWeight: "700" },
 
   /* ── Posts grid ── */
-  postsGrid:          { flexDirection: "row", flexWrap: "wrap", gap: 1.5, paddingTop: 2 },
+  postsGrid:          { flexDirection: "row", flexWrap: "wrap", gap: 2, paddingTop: 2 },
   postCell:           { width: CELL, height: CELL, position: "relative" },
   postCellImg:        { width: "100%", height: "100%" },
   postCellOverlay:    { ...StyleSheet.absoluteFillObject },
-  postCellBadge:      { position: "absolute", bottom: 5, left: 5, flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "rgba(0,0,0,0.6)", paddingHorizontal: 6, paddingVertical: 3, borderRadius: 8 },
-  postCellBadgeText:  { color: "#fff", fontSize: 10, fontWeight: "700" },
+  postCellBadge:      { position: "absolute", bottom: 6, left: 6, flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(0,0,0,0.7)", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  postCellBadgeText:  { color: "#fff", fontSize: 11, fontWeight: "800" },
 
   /* ── Products grid ── */
-  productGrid:        { flexDirection: "row", flexWrap: "wrap", padding: 16, gap: 12 },
-  productCell:        { width: PROD_CARD, borderRadius: 12, overflow: "hidden", borderWidth: 1 },
+  productGrid:        { flexDirection: "row", flexWrap: "wrap", padding: 16, gap: 14 },
+  productCell:        { width: PROD_CARD, borderRadius: 14, overflow: "hidden", borderWidth: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   productCellImg:     { width: "100%", height: PROD_CARD * 0.85 },
-  productCellInfo:    { padding: 8, gap: 4 },
-  productCellTitle:   { fontSize: 12, fontWeight: "600" },
-  productCellBottom:  { flexDirection: "row", alignItems: "center", gap: 6 },
-  productCellPrice:   { fontSize: 13, fontWeight: "800" },
-  productCellDisc:    { paddingHorizontal: 5, paddingVertical: 2, borderRadius: 6 },
-  productCellDiscText:{ color: "#fff", fontSize: 9, fontWeight: "800" },
+  productCellInfo:    { padding: 10, gap: 5 },
+  productCellTitle:   { fontSize: 13, fontWeight: "700" },
+  productCellBottom:  { flexDirection: "row", alignItems: "center", gap: 8 },
+  productCellPrice:   { fontSize: 14, fontWeight: "900" },
+  productCellDisc:    { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8 },
+  productCellDiscText:{ color: "#fff", fontSize: 10, fontWeight: "900" },
 
   /* ── Orders ── */
-  orderCard:          { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 14, borderWidth: 1 },
-  orderImg:           { width: 50, height: 50, borderRadius: 10 },
-  orderProduct:       { fontSize: 13, fontWeight: "700" },
-  orderId:            { fontSize: 11, marginTop: 1 },
-  orderPrice:         { fontSize: 13, fontWeight: "800", marginTop: 2 },
-  orderStatusBadge:   { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 10, borderWidth: 1 },
-  orderStatusDot:     { width: 6, height: 6, borderRadius: 3 },
-  orderStatusText:    { fontSize: 10, fontWeight: "700" },
-  viewAllBtn:         { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, marginTop: 4 },
-  viewAllText:        { fontSize: 14, fontWeight: "700" },
+  orderCard:          { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, borderRadius: 16, borderWidth: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+  orderImg:           { width: 54, height: 54, borderRadius: 12 },
+  orderProduct:       { fontSize: 14, fontWeight: "800", letterSpacing: -0.2 },
+  orderId:            { fontSize: 12, marginTop: 2, fontWeight: "600" },
+  orderPrice:         { fontSize: 14, fontWeight: "900", marginTop: 3 },
+  orderStatusBadge:   { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1 },
+  orderStatusDot:     { width: 7, height: 7, borderRadius: 3.5 },
+  orderStatusText:    { fontSize: 11, fontWeight: "800", letterSpacing: 0.1 },
+  viewAllBtn:         { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 15, borderRadius: 16, borderWidth: 1.5, marginTop: 6, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+  viewAllText:        { fontSize: 15, fontWeight: "800", letterSpacing: 0.2 },
 
   /* ── Reviews ── */
-  reviewsSummary:     { alignItems: "center", padding: 20, borderRadius: 16, borderWidth: 1, gap: 6 },
-  reviewsAvg:         { fontSize: 42, fontWeight: "900" },
-  reviewsStars:       { flexDirection: "row", gap: 4 },
-  reviewsCount:       { fontSize: 12 },
-  reviewCard:         { borderRadius: 14, padding: 14, gap: 8, borderWidth: 1 },
-  reviewHeader:       { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  reviewAvatar:       { width: 40, height: 40, borderRadius: 20 },
-  reviewName:         { fontSize: 14, fontWeight: "700" },
-  reviewStars:        { flexDirection: "row", gap: 2, marginTop: 3 },
-  reviewTime:         { fontSize: 11 },
-  reviewText:         { fontSize: 13, lineHeight: 19 },
+  reviewsSummary:     { alignItems: "center", padding: 22, borderRadius: 18, borderWidth: 1, gap: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+  reviewsAvg:         { fontSize: 48, fontWeight: "900" },
+  reviewsStars:       { flexDirection: "row", gap: 5 },
+  reviewsCount:       { fontSize: 13, fontWeight: "600" },
+  reviewCard:         { borderRadius: 16, padding: 16, gap: 10, borderWidth: 1, shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
+  reviewHeader:       { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  reviewAvatar:       { width: 44, height: 44, borderRadius: 22 },
+  reviewName:         { fontSize: 15, fontWeight: "800", letterSpacing: -0.2 },
+  reviewStars:        { flexDirection: "row", gap: 3, marginTop: 4 },
+  reviewTime:         { fontSize: 12, fontWeight: "600" },
+  reviewText:         { fontSize: 14, lineHeight: 21, fontWeight: "500" },
 
   /* ── Empty state ── */
-  emptyState:         { alignItems: "center", gap: 10, paddingVertical: 50, paddingHorizontal: 40 },
-  emptyIconWrap:      { width: 70, height: 70, borderRadius: 35, alignItems: "center", justifyContent: "center" },
-  emptyTitle:         { fontSize: 17, fontWeight: "800" },
-  emptySub:           { fontSize: 13, textAlign: "center", lineHeight: 20 },
-  emptyBtn:           { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 22, marginTop: 4 },
-  emptyBtnText:       { color: "#fff", fontWeight: "700", fontSize: 14 },
+  emptyState:         { alignItems: "center", gap: 12, paddingVertical: 60, paddingHorizontal: 40 },
+  emptyIconWrap:      { width: 80, height: 80, borderRadius: 40, alignItems: "center", justifyContent: "center" },
+  emptyTitle:         { fontSize: 19, fontWeight: "900", letterSpacing: -0.3 },
+  emptySub:           { fontSize: 14, textAlign: "center", lineHeight: 22 },
+  emptyBtn:           { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 28, paddingVertical: 14, borderRadius: 24, marginTop: 6, shadowColor: "#8B5CF6", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
+  emptyBtnText:       { color: "#fff", fontWeight: "800", fontSize: 15 },
 
   /* ── Settings ── */
-  settingsTopBar:     { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
-  settingsTopTitle:   { flex: 1, fontSize: 18, fontWeight: "800" },
-  settingsProfile:    { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1 },
-  settingsAvatarRing: { borderWidth: 2, borderRadius: 26, padding: 2 },
-  settingsAvatar:     { width: 46, height: 46, borderRadius: 23 },
-  settingsName:       { fontSize: 15, fontWeight: "700" },
-  settingsEmail:      { fontSize: 13, marginTop: 1 },
-  settingRow:         { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, paddingVertical: 15, borderBottomWidth: 1 },
-  settingIconWrap:    { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
-  settingLabel:       { flex: 1, fontSize: 15 },
-  logoutBtn:          { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, margin: 16, paddingVertical: 15, borderRadius: 16, borderWidth: 1.5 },
-  logoutText:         { color: "#FF3B5C", fontSize: 15, fontWeight: "800" },
+  settingsTopBar:     { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, paddingBottom: 16, borderBottomWidth: 1 },
+  settingsTopTitle:   { flex: 1, fontSize: 20, fontWeight: "900", letterSpacing: -0.4 },
+  settingsProfile:    { flexDirection: "row", alignItems: "center", gap: 16, paddingHorizontal: 16, paddingVertical: 18, borderBottomWidth: 1 },
+  settingsAvatarRing: { borderWidth: 2, borderRadius: 28, padding: 3 },
+  settingsAvatar:     { width: 50, height: 50, borderRadius: 25 },
+  settingsName:       { fontSize: 16, fontWeight: "900", letterSpacing: -0.2 },
+  settingsEmail:      { fontSize: 14, marginTop: 2, fontWeight: "600" },
+  settingRow:         { flexDirection: "row", alignItems: "center", gap: 16, paddingHorizontal: 16, paddingVertical: 17, borderBottomWidth: 1 },
+  settingIconWrap:    { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center" },
+  settingLabel:       { flex: 1, fontSize: 16, fontWeight: "600" },
+  logoutBtn:          { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, margin: 16, paddingVertical: 17, borderRadius: 18, borderWidth: 1.5, shadowColor: "#FF3B5C", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 2 },
+  logoutText:         { color: "#FF3B5C", fontSize: 16, fontWeight: "900", letterSpacing: 0.2 },
 });

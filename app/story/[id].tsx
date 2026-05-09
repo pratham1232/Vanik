@@ -220,7 +220,6 @@ export default function StoryScreen() {
           onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); goNext(currentIndex); }}
           onLongPress={() => { anim.current?.stop(); setPaused(true); }}
           onPressOut={() => { if (paused) { setPaused(false); } }}
-          onPress={() => handleDoubleTap()}
         />
       </View>
 

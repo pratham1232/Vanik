@@ -1,5 +1,7 @@
 import { Feather } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -149,14 +151,14 @@ function ReelItem({ reel, isActive }: { reel: any; isActive: boolean }) {
       <View style={[styles.rightActions, { bottom: bottomPad + 20 }]}>
         {/* Seller avatar */}
         <View style={styles.avatarSection}>
-          <View style={[styles.avatarRing, { borderColor: following ? colors.primary : "#fff" }]}>
+          <View style={[styles.avatarRing, { borderColor: following ? "#8B5CF6" : "#fff" }]}>
             <Image source={{ uri: reel.sellerAvatar }} style={styles.avatar} />
           </View>
           <Pressable
-            style={[styles.followBtn, { backgroundColor: following ? colors.primary : "#fff" }]}
+            style={[styles.followBtn, { backgroundColor: following ? "#8B5CF6" : "#fff" }]}
             onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setFollowing((f) => !f); }}
           >
-            <Feather name={following ? "check" : "plus"} size={10} color={following ? "#fff" : colors.primary} />
+            <Feather name={following ? "check" : "plus"} size={10} color={following ? "#fff" : "#8B5CF6"} />
           </Pressable>
         </View>
 
@@ -191,7 +193,7 @@ function ReelItem({ reel, isActive }: { reel: any; isActive: boolean }) {
         </Pressable>
 
         {/* Music disc */}
-        <Animated.View style={[styles.musicDisc, { borderColor: colors.primary }]}>
+        <Animated.View style={[styles.musicDisc, { borderColor: "#8B5CF6" }]}>
           <Image source={{ uri: reel.sellerAvatar }} style={styles.musicThumb} />
         </Animated.View>
       </View>
@@ -224,33 +226,39 @@ function ReelItem({ reel, isActive }: { reel: any; isActive: boolean }) {
 
         {/* Product card */}
         {product && (
-          <Pressable
+          <BlurView
+            intensity={40}
+            tint="dark"
             style={styles.productCard}
-            onPress={() => router.push(`/product/${product.id}`)}
           >
-            <Image source={product.image} style={styles.productThumb} resizeMode="cover" />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={styles.productName} numberOfLines={1}>{product.title}</Text>
-              <View style={styles.productPriceRow}>
-                <Text style={styles.productPrice}>{formatPrice(product.price)}</Text>
-                {product.discount > 0 && (
-                  <View style={styles.discountPill}>
-                    <Text style={styles.discountText}>{product.discount}% OFF</Text>
-                  </View>
-                )}
-              </View>
-            </View>
             <Pressable
-              style={styles.addBtn}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerName: product.sellerName });
-              }}
+              style={styles.productCardInner}
+              onPress={() => router.push(`/product/${product.id}`)}
             >
-              <Feather name="shopping-bag" size={14} color="#fff" />
-              <Text style={styles.addBtnText}>Add</Text>
+              <Image source={product.image} style={styles.productThumb} resizeMode="cover" />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={styles.productName} numberOfLines={1}>{product.title}</Text>
+                <View style={styles.productPriceRow}>
+                  <Text style={styles.productPrice}>{formatPrice(product.price)}</Text>
+                  {product.discount > 0 && (
+                    <View style={[styles.discountPill, { backgroundColor: "#FF3B5C" }]}>
+                      <Text style={styles.discountText}>{product.discount}% OFF</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+              <Pressable
+                style={[styles.addBtn, { backgroundColor: "#8B5CF6" }]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerName: product.sellerName });
+                }}
+              >
+                <Feather name="shopping-bag" size={14} color="#fff" />
+                <Text style={styles.addBtnText}>Add</Text>
+              </Pressable>
             </Pressable>
-          </Pressable>
+          </BlurView>
         )}
       </View>
 
@@ -336,33 +344,34 @@ const styles = StyleSheet.create({
   musicThumb: { width: 38, height: 38, borderRadius: 19 },
   bottomInfo: { position: "absolute", left: 12, right: 80, gap: 10, zIndex: 10 },
   sellerRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  sellerNameBtn: {},
-  sellerHandle: { color: "#fff", fontSize: 16, fontWeight: "800", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
-  liveBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  liveBadgeText: { color: "#fff", fontSize: 11, fontWeight: "700" },
-  caption: { color: "rgba(255,255,255,0.9)", fontSize: 14, lineHeight: 20, textShadowColor: "rgba(0,0,0,0.7)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
-  musicRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4 },
-  musicText: { color: "rgba(255,255,255,0.75)", fontSize: 13 },
-  productCard: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "rgba(0,0,0,0.65)", borderRadius: 16, padding: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
-  productThumb: { width: 46, height: 46, borderRadius: 10 },
-  productName: { color: "#fff", fontSize: 13, fontWeight: "700" },
+  sellerNameBtn: { alignSelf: "flex-start" },
+  sellerHandle: { color: "#fff", fontSize: 16, fontWeight: "900", textShadowColor: "rgba(0,0,0,0.5)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4 },
+  liveBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
+  liveBadgeText: { color: "#fff", fontSize: 10, fontWeight: "900" },
+  caption: { color: "#fff", fontSize: 14, fontWeight: "500", lineHeight: 20, textShadowColor: "rgba(0,0,0,0.5)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  musicRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  musicText: { color: "rgba(255,255,255,0.9)", fontSize: 13, fontWeight: "600" },
+  productCard: { borderRadius: 20, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
+  productCardInner: { flexDirection: "row", alignItems: "center", gap: 12, padding: 10 },
+  productThumb: { width: 50, height: 50, borderRadius: 12 },
+  productName: { color: "#fff", fontSize: 13, fontWeight: "800" },
   productPriceRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  productPrice: { color: "#A78BFA", fontSize: 14, fontWeight: "900" },
-  discountPill: { backgroundColor: "#FF3B5C", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  discountText: { color: "#fff", fontSize: 10, fontWeight: "800" },
-  addBtn: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#8B5CF6", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 },
-  addBtnText: { color: "#fff", fontSize: 12, fontWeight: "700" },
-  commentsOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 50, justifyContent: "flex-end" },
-  commentsSheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 16, maxHeight: height * 0.6 },
-  commentsHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.3)", alignSelf: "center", marginBottom: 12 },
-  commentsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  commentsTitle: { color: "#fff", fontSize: 16, fontWeight: "800" },
-  commentRow: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  commentAvatar: { width: 34, height: 34, borderRadius: 17 },
-  commentUser: { color: "#fff", fontSize: 13, fontWeight: "700" },
-  commentText: { color: "rgba(255,255,255,0.8)", fontSize: 13, lineHeight: 18, marginTop: 2 },
-  commentInput: { flexDirection: "row", alignItems: "center", gap: 10, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.1)", paddingTop: 12 },
-  commentInputBox: { flex: 1, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 20, paddingHorizontal: 14, paddingVertical: 10 },
+  productPrice: { color: "#fff", fontSize: 14, fontWeight: "900" },
+  discountPill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  discountText: { color: "#fff", fontSize: 9, fontWeight: "900" },
+  addBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14 },
+  addBtnText: { color: "#fff", fontSize: 12, fontWeight: "900" },
+  commentsOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+  commentsSheet: { height: "70%", borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  commentsHandle: { width: 40, height: 4, backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 2, alignSelf: "center", marginBottom: 20 },
+  commentsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
+  commentsTitle: { color: "#fff", fontSize: 18, fontWeight: "900" },
+  commentRow: { flexDirection: "row", gap: 12 },
+  commentAvatar: { width: 36, height: 36, borderRadius: 18 },
+  commentUser: { color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: "700", marginBottom: 2 },
+  commentText: { color: "#fff", fontSize: 14, fontWeight: "500", lineHeight: 18 },
+  commentInput: { flexDirection: "row", alignItems: "center", gap: 12, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.1)", paddingTop: 16, marginTop: 10 },
+  commentInputBox: { flex: 1, height: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.08)", justifyContent: "center", paddingHorizontal: 16 },
   commentPlaceholder: { color: "rgba(255,255,255,0.4)", fontSize: 14 },
-  commentSendBtn: { padding: 6 },
+  commentSendBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
 });

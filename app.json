@@ -17,6 +17,12 @@
       "supportsTablet": false
     },
     "android": {
+      "package": "com.vanik.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#0B0B18"
+      },
       "backgroundColor": "#0B0B18"
     },
     "web": {
@@ -30,11 +36,20 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "origin": "https://replit.com/"
+      },
+      "eas": {
+        "projectId": "4b75115c-0048-4ae3-916b-af3af1a2881a"
+      }
     }
   }
 }

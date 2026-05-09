@@ -21,8 +21,27 @@ const colors = {
     live: "#FF3B5C",
     online: "#10B981",
     gold: "#F59E0B",
+<<<<<<< Updated upstream
     surface: "#F0EEFF",
     surfaceHigh: "#E8E0FF",
+=======
+    surface: "#F4F0FF",
+    surfaceHigh: "#EAE2FF",
+    // Premium additions
+    glass: "rgba(255,255,255,0.7)",
+    glassStrong: "rgba(255,255,255,0.9)",
+    glassBorder: "rgba(0,0,0,0.05)",
+    shimmer: "#E8DEFF",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#3B82F6",
+    gradientPrimary: ["#8B5CF6", "#7C3AED", "#6D28D9"],
+    gradientSecondary: ["#EC4899", "#DB2777", "#BE185D"],
+    gradientLive: ["#FF3B5C", "#E11D48", "#BE123C"],
+    gradientGold: ["#F59E0B", "#D97706", "#B45309"],
+    gradientDark: ["#F9FAFB", "#F3F4F6", "#E5E7EB"],
+    gradientSurface: ["#FFFFFF", "#F9FAFB"],
+>>>>>>> Stashed changes
   },
   dark: {
     text: "#FFFFFF",
@@ -46,8 +65,27 @@ const colors = {
     live: "#FF3B5C",
     online: "#10B981",
     gold: "#F59E0B",
+<<<<<<< Updated upstream
     surface: "#0F0F20",
     surfaceHigh: "#1A1A30",
+=======
+    surface: "#0A0A1F",
+    surfaceHigh: "#12122E",
+    // Premium additions
+    glass: "rgba(10,10,31,0.75)",
+    glassStrong: "rgba(5,5,15,0.95)",
+    glassBorder: "rgba(255,255,255,0.12)",
+    shimmer: "#1A1A3F",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#3B82F6",
+    gradientPrimary: ["#8B5CF6", "#7C3AED", "#6D28D9"],
+    gradientSecondary: ["#EC4899", "#DB2777", "#BE185D"],
+    gradientLive: ["#FF3B5C", "#E11D48", "#BE123C"],
+    gradientGold: ["#F59E0B", "#D97706", "#B45309"],
+    gradientDark: ["#050510", "#000000", "#000000"],
+    gradientSurface: ["#050510", "#0A0A1F"],
+>>>>>>> Stashed changes
   },
   radius: 12,
 };
