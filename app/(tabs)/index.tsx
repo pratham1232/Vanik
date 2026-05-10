@@ -3,7 +3,9 @@ import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "@/constants/api";
 import {
   Animated,
   Dimensions,
@@ -46,7 +48,7 @@ const BANNERS = [
 /* ─────────────────────────────────────────────────────────
    PRODUCT CARD (Vertical / Horizontal variants)
 ───────────────────────────────────────────────────────── */
-function ProductCard({ product, horizontal = false }: { product: typeof PRODUCTS[number], horizontal?: boolean }) {
+function ProductCard({ product, horizontal = false }: { product: any, horizontal?: boolean }) {
   const colors = useColors();
   const { addItem } = useCart();
   const [wished, setWished] = useState(false);
@@ -58,7 +60,7 @@ function ProductCard({ product, horizontal = false }: { product: typeof PRODUCTS
       Animated.spring(scale, { toValue: 0.92, useNativeDriver: true, speed: 60 }),
       Animated.spring(scale, { toValue: 1,    useNativeDriver: true, speed: 60 }),
     ]).start();
-    addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerName: product.sellerName });
+    addItem({ id: product._id || product.id, title: product.title, price: product.price, image: product.images?.[0] || product.image, sellerName: product.seller?.name || product.sellerName });
   };
 
   const cardWidth = horizontal ? 160 : CARD_W;
@@ -69,7 +71,7 @@ function ProductCard({ product, horizontal = false }: { product: typeof PRODUCTS
       onPress={() => router.push(`/product/${product.id}`)}
     >
       <View style={[styles.productImageWrap, { height: horizontal ? 180 : 200 }]}>
-        <Image source={product.image} style={styles.productImage} resizeMode="cover" />
+        <Image source={{ uri: product.images?.[0] || product.image }} style={styles.productImage} resizeMode="cover" />
         <LinearGradient colors={["transparent", "rgba(5,5,15,0.9)"]} style={styles.productImageGrad} pointerEvents="none" />
 
         {/* Discount badge */}
@@ -96,7 +98,7 @@ function ProductCard({ product, horizontal = false }: { product: typeof PRODUCTS
       </View>
 
       <View style={styles.productBody}>
-        <Text style={[styles.productBrand, { color: "#A78BFA" }]} numberOfLines={1}>{product.sellerName}</Text>
+        <Text style={[styles.productBrand, { color: "#A78BFA" }]} numberOfLines={1}>{product.seller?.name || product.sellerName}</Text>
         <Text style={[styles.productTitle, { color: "#fff" }]} numberOfLines={2}>{product.title}</Text>
         <View style={styles.priceContainer}>
           <Text style={[styles.price, { color: "#fff" }]}>{formatPrice(product.price)}</Text>
@@ -116,7 +118,23 @@ export default function HomeScreen() {
   const topPad    = Platform.OS === "web" ? 20 : insets.top;
   const [search, setSearch]       = useState("");
   const [bannerIdx, setBannerIdx] = useState(0);
+  const [products, setProducts]   = useState<any[]>([]);
+  const [loading, setLoading]     = useState(true);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/products`);
+        setProducts(res.data);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   // Header blur intensity based on scroll
   const headerOpacity = scrollY.interpolate({
@@ -290,8 +308,12 @@ export default function HomeScreen() {
             <Pressable onPress={() => router.push("/explore")}><Text style={[styles.seeAll, { color: "#8B5CF6" }]}>See all</Text></Pressable>
           </View>
           <View style={styles.productGrid}>
-            {PRODUCTS.slice(0, 4).map((p) => (
-              <ProductCard key={p.id} product={p} />
+            {loading ? (
+              <View style={{ flex: 1, padding: 20, alignItems: 'center' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}>Curating the best for you...</Text>
+              </View>
+            ) : products.slice(0, 8).map((p) => (
+              <ProductCard key={p._id || p.id} product={p} />
             ))}
           </View>
         </View>

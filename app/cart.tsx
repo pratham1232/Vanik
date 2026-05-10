@@ -2,6 +2,11 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useState } from "react";
+import axios from "axios";
+import { API_URL } from "@/constants/api";
+import { useAuth } from "@/context/AuthContext";
+
+
 import {
   Alert,
   Image,
@@ -13,6 +18,17 @@ import {
   TextInput,
   View,
 } from "react-native";
+
+// Mock for Razorpay on Web to avoid resolution errors
+let RazorpayCheckout: any = { open: async () => { throw new Error("Razorpay is only available on mobile"); } };
+if (Platform.OS !== 'web') {
+  try {
+    RazorpayCheckout = require('react-native-razorpay').default;
+  } catch (e) {
+    console.warn("react-native-razorpay module not found");
+  }
+}
+
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCart } from "@/context/CartContext";
@@ -38,6 +54,7 @@ const STEPS = ["Cart", "Address", "Payment", "Review"];
 export default function CartScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const { items, removeItem, updateQty, total, clearCart } = useCart();
   const [step, setStep] = useState(0);
   const [couponInput, setCouponInput] = useState("");
@@ -66,16 +83,82 @@ export default function CartScreen() {
     }
   };
 
-  const handleCheckout = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setCheckedOut(true);
-    successScale.value = withSequence(withSpring(1.2), withSpring(1));
-    setTimeout(() => {
-      clearCart();
-      setCheckedOut(false);
-      setStep(0);
-      router.push("/orders" as any);
-    }, 2200);
+  const handleCheckout = async () => {
+    if (!user) {
+      Alert.alert("Sign In Required", "Please log in to place an order.");
+      return;
+    }
+
+    try {
+      // 1. Create order on backend
+      const orderRes = await axios.post(`${API_URL}/api/payments/create-order`, {
+        amount: finalTotal,
+        items: items.map(i => ({
+          product: i.id,
+          quantity: i.quantity,
+          price: i.price
+        }))
+      });
+
+      const { order } = orderRes.data;
+
+      if (Platform.OS === 'web') {
+        Alert.alert("Native Feature", "Payments via Razorpay SDK are only supported on Android/iOS. In a production app, we would redirect to a hosted payment page here.");
+        return;
+      }
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        description: 'Vanik Premium Purchase',
+        image: 'https://i.imgur.com/3g7nmJC.png',
+        currency: 'INR',
+        key: 'rzp_test_SnMsaTE9f6F59H', // Use the user's provided test key
+        amount: order.amount,
+        name: 'Vanik',
+        order_id: order.id,
+        prefill: {
+          email: user.email,
+          contact: '',
+          name: user.name
+        },
+        theme: { color: '#8B5CF6' }
+      };
+
+      RazorpayCheckout.open(options).then(async (data: any) => {
+        // 3. Verify payment on backend
+        const verifyRes = await axios.post(`${API_URL}/api/payments/verify`, {
+          razorpay_order_id: data.razorpay_order_id,
+          razorpay_payment_id: data.razorpay_payment_id,
+          razorpay_signature: data.razorpay_signature,
+          orderData: {
+            items: items.map(i => ({
+              product: i.id,
+              quantity: i.quantity,
+              price: i.price
+            })),
+            totalAmount: finalTotal,
+            shippingAddress: ADDRESSES.find(a => a.id === selectedAddress)
+          }
+        });
+
+        if (verifyRes.data.success) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          setCheckedOut(true);
+          successScale.value = withSequence(withSpring(1.2), withSpring(1));
+          setTimeout(() => {
+            clearCart();
+            setCheckedOut(false);
+            setStep(0);
+            router.push("/(tabs)/profile" as any);
+          }, 2200);
+        }
+      }).catch((error: any) => {
+        Alert.alert("Payment Failed", error.description || "The payment could not be completed.");
+      });
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert("Error", err.response?.data?.message || "Could not initialize checkout.");
+    }
   };
 
   const successStyle = useAnimatedStyle(() => ({ transform: [{ scale: successScale.value }] }));
@@ -165,7 +248,7 @@ export default function CartScreen() {
                 {items.map((item) => (
                   <View key={item.id} style={[styles.cartItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <Pressable onPress={() => router.push(`/product/${item.id}`)}>
-                      <Image source={item.image} style={styles.itemImg} resizeMode="cover" />
+                      <Image source={{ uri: item.image }} style={styles.itemImg} resizeMode="cover" />
                     </Pressable>
                     <View style={styles.itemInfo}>
                       <Text style={[styles.itemTitle, { color: colors.foreground }]} numberOfLines={2}>{item.title}</Text>
@@ -311,7 +394,7 @@ export default function CartScreen() {
                   <Text style={[styles.reviewCardTitle, { color: colors.mutedForeground }]}>ITEMS ({items.reduce((s, i) => s + i.quantity, 0)})</Text>
                   {items.map((item) => (
                     <View key={item.id} style={[styles.reviewItemRow, { borderTopColor: colors.border }]}>
-                      <Image source={item.image} style={styles.reviewItemImg} resizeMode="cover" />
+                      <Image source={{ uri: item.image }} style={styles.reviewItemImg} resizeMode="cover" />
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.reviewItemName, { color: colors.foreground }]} numberOfLines={1}>{item.title}</Text>
                         <Text style={[styles.reviewItemQty, { color: colors.mutedForeground }]}>Qty: {item.quantity}</Text>

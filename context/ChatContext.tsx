@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCommunity, Friend } from "./CommunityContext";
+
 import { CHAT_THREADS, CHAT_MESSAGES } from "@/data/mockData";
 
 export interface Message {
@@ -44,32 +44,8 @@ const STORAGE_KEY_MESSAGES = "vanik_chat_messages";
 const STORAGE_KEY_THREADS = "vanik_chat_threads";
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
-  const { friends } = useCommunity();
   const [threads, setThreads] = useState<Thread[]>(CHAT_THREADS as Thread[]);
   const [messages, setMessages] = useState<Record<string, Message[]>>(CHAT_MESSAGES as Record<string, Message[]>);
-
-  // Initialize threads from friends if they don't exist
-  useEffect(() => {
-    setThreads((prev) => {
-      const updatedThreads = [...prev];
-      friends.forEach((friend) => {
-        if (!updatedThreads.find((t) => t.id === friend.id)) {
-          updatedThreads.push({
-            id: friend.id,
-            name: friend.name,
-            avatar: friend.avatar,
-            lastMsg: "Say hi to your new friend!",
-            time: "Now",
-            unread: 0,
-            online: friend.status === "online",
-            isGroup: false,
-            lastMsgFrom: "them",
-          });
-        }
-      });
-      return updatedThreads;
-    });
-  }, [friends]);
 
   const sendMessage = useCallback((threadId: string, text: string, type: Message["type"] = "text", extra: Partial<Message> = {}) => {
     const newMessage: Message = {

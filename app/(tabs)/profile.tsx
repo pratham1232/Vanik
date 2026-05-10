@@ -3,7 +3,9 @@ import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "@/constants/api";
 import {
   Dimensions,
   Image,
@@ -272,13 +274,33 @@ const REVIEWS_DATA = [
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user, logout, isLoggedIn } = useAuth();
+  const { user, logout, isLoggedIn, token } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [activeTab, setActiveTab]         = useState(0);
   const [showSettings, setShowSettings]   = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
   const topPad    = Platform.OS === "web" ? 67 : insets.top;
-  const isSeller  = user?.role === "seller";
+  const isSeller  = user?.role === "seller" || user?.role === "admin";
+
+  useEffect(() => {
+    if (isLoggedIn && activeTab === 2 && !isSeller) {
+      fetchOrders();
+    }
+  }, [isLoggedIn, activeTab, isSeller]);
+
+  const fetchOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/orders/my-orders`);
+      setOrders(res.data);
+    } catch (err) {
+      console.error("Failed to fetch orders", err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
 
   if (!isLoggedIn) return <GuestScreen />;
 
@@ -442,17 +464,10 @@ export default function ProfileScreen() {
         {isSeller && (
           <View style={styles.sellerActions}>
             {[
-<<<<<<< Updated upstream
-              { icon: "video",       label: "Go Live",     bg: "#FF3B5C", action: () => router.push("/live/l1") },
-              { icon: "plus-circle", label: "Add Product", bg: colors.primary, action: () => router.push("/create") },
-              { icon: "bar-chart-2", label: "Analytics",   bg: "#10B981", action: () => {} },
-              { icon: "trending-up", label: "Resell",      bg: "#F59E0B", action: () => {} },
-=======
               { icon: "video",       label: "Go Live",     grad: ["#FF3B5C", "#FF6B81"], action: () => router.push("/live/l1") },
               { icon: "plus-circle", label: "Add Product", grad: [colors.primary, colors.accent], action: () => router.push("/create") },
               { icon: "bar-chart-2", label: "Dashboard",  grad: ["#10B981", "#34D399"], action: () => router.push("/seller-dashboard") },
               { icon: "trending-up", label: "Resell",      grad: ["#F59E0B", "#FBBF24"], action: () => router.push("/explore") },
->>>>>>> Stashed changes
             ].map((a) => (
               <Pressable key={a.label} style={styles.sellerAction} onPress={a.action}>
                 <LinearGradient colors={a.grad as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.sellerActionIcon}>
@@ -604,24 +619,38 @@ export default function ProfileScreen() {
           ) : (
             /* Buyer: Orders list */
             <View style={{ padding: 16, gap: 10 }}>
-              {ORDERS_DATA.map((o) => (
-                <Pressable key={o.id} style={[styles.orderCard, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => router.push("/orders")}>
-                  <Image source={o.img} style={styles.orderImg} resizeMode="cover" />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.orderProduct, { color: colors.foreground }]} numberOfLines={1}>{o.product}</Text>
-                    <Text style={[styles.orderId, { color: colors.mutedForeground }]}>{o.id}</Text>
-                    <Text style={[styles.orderPrice, { color: colors.primary }]}>{o.price}</Text>
+              {loadingOrders ? (
+                <Text style={{ textAlign: 'center', color: colors.mutedForeground, marginTop: 20 }}>Fetching your order history...</Text>
+              ) : orders.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <View style={[styles.emptyIconWrap, { backgroundColor: colors.muted }]}>
+                    <Feather name="package" size={30} color={colors.mutedForeground} />
                   </View>
-                  <View style={[styles.orderStatusBadge, { backgroundColor: o.color + "18", borderColor: o.color + "40" }]}>
-                    <View style={[styles.orderStatusDot, { backgroundColor: o.color }]} />
-                    <Text style={[styles.orderStatusText, { color: o.color }]}>{o.status}</Text>
-                  </View>
-                </Pressable>
-              ))}
-              <Pressable style={[styles.viewAllBtn, { borderColor: colors.primary }]} onPress={() => router.push("/orders")}>
-                <Text style={[styles.viewAllText, { color: colors.primary }]}>View All Orders</Text>
-                <Feather name="arrow-right" size={15} color={colors.primary} />
-              </Pressable>
+                  <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No orders yet</Text>
+                  <Text style={[styles.emptySub, { color: colors.mutedForeground }]}>Start shopping to see your orders here</Text>
+                  <Pressable style={[styles.emptyBtn, { backgroundColor: colors.primary }]} onPress={() => router.push("/")}>
+                    <Text style={styles.emptyBtnText}>Browse Products</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                orders.map((o) => (
+                  <Pressable key={o._id} style={[styles.orderCard, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {}}>
+                    <Image source={{ uri: o.items?.[0]?.product?.images?.[0] || "https://i.imgur.com/3g7nmJC.png" }} style={styles.orderImg} resizeMode="cover" />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.orderProduct, { color: colors.foreground }]} numberOfLines={1}>{o.items?.[0]?.product?.title || "Product"}</Text>
+                      <Text style={[styles.orderId, { color: colors.mutedForeground }]}>ID: {o._id.slice(-6).toUpperCase()}</Text>
+                      <Text style={[styles.orderPrice, { color: colors.primary }]}>₹{o.totalAmount.toLocaleString()}</Text>
+                    </View>
+                    <View style={[styles.orderStatusBadge, { 
+                      backgroundColor: (o.status === 'Delivered' ? '#10B981' : o.status === 'Shipped' ? '#F59E0B' : '#8B5CF6') + "18", 
+                      borderColor: (o.status === 'Delivered' ? '#10B981' : o.status === 'Shipped' ? '#F59E0B' : '#8B5CF6') + "40" 
+                    }]}>
+                      <View style={[styles.orderStatusDot, { backgroundColor: o.status === 'Delivered' ? '#10B981' : o.status === 'Shipped' ? '#F59E0B' : '#8B5CF6' }]} />
+                      <Text style={[styles.orderStatusText, { color: o.status === 'Delivered' ? '#10B981' : o.status === 'Shipped' ? '#F59E0B' : '#8B5CF6' }]}>{o.status}</Text>
+                    </View>
+                  </Pressable>
+                ))
+              )}
             </View>
           )
         )}

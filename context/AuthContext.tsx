@@ -1,235 +1,161 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { Platform } from "react-native";
+import axios from 'axios';
+import { API_URL } from "../constants/api";
 
-GoogleSignin.configure({
-  webClientId: 'PLACEHOLDER_WEB_CLIENT_ID.apps.googleusercontent.com', // Replace with real client ID
-  offlineAccess: true,
-});
+// Only import GoogleSignin on native platforms
+let GoogleSignin: any = null;
+if (Platform.OS !== 'web') {
+  try {
+    const googleModule = require('@react-native-google-signin/google-signin');
+    GoogleSignin = googleModule.GoogleSignin;
+    GoogleSignin.configure({
+      webClientId: '1016790162859-jl4q1vo0pia43o192e8i27rfotv46v30.apps.googleusercontent.com',
+      offlineAccess: true,
+    });
+  } catch (e) {
+    console.log('Google Sign-In not available on this platform');
+  }
+}
 
-export type UserRole = "buyer" | "seller";
+export type UserRole = "buyer" | "seller" | "admin";
 
 export interface User {
   id: string;
+  _id?: string;
   name: string;
   email: string;
   role: UserRole;
   avatar: string;
-  bio: string;
-  followers: number;
-  following: number;
-  joinedAt: string;
+  bio?: string;
+  followers?: number;
+  following?: number;
+  joinedAt?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isLoggedIn: boolean;
+  token: string | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, password: string, role: UserRole) => Promise<{ success: boolean; error?: string }>;
-<<<<<<< Updated upstream
-=======
-  sendOTP: (phone: string) => Promise<{ success: boolean; error?: string }>;
-  verifyOTP: (phone: string, otp: string, name?: string, role?: UserRole) => Promise<{ success: boolean; isNewUser?: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
->>>>>>> Stashed changes
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 const USER_KEY = "vanik_user";
-
-const DEMO_ACCOUNTS: Array<User & { password: string }> = [
-  {
-    id: "demo_buyer",
-    name: "Riya Sharma",
-    email: "buyer@vanik.in",
-    password: "demo123",
-    role: "buyer",
-    avatar: "https://i.pravatar.cc/150?img=5",
-    bio: "Fashion & lifestyle enthusiast. Love discovering local brands!",
-    followers: 284,
-    following: 512,
-    joinedAt: "Jan 2024",
-  },
-  {
-    id: "demo_seller",
-    name: "Ananya Collections",
-    email: "seller@vanik.in",
-    password: "demo123",
-    role: "seller",
-    avatar: "https://i.pravatar.cc/150?img=47",
-    bio: "Fashion & Lifestyle seller. Curating the best in ethnic wear. Ships pan-India.",
-    followers: 12400,
-    following: 348,
-    joinedAt: "Nov 2023",
-  },
-];
+const TOKEN_KEY = "vanik_token";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    AsyncStorage.getItem(USER_KEY).then((val) => {
-      if (val) {
-        try { setUser(JSON.parse(val)); } catch {}
+    const loadStorage = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem(TOKEN_KEY);
+        const storedUser = await AsyncStorage.getItem(USER_KEY);
+        
+        if (storedToken && storedUser) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+          axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        }
+      } catch (e) {
+        console.error("Failed to load auth state", e);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    };
+    loadStorage();
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    await new Promise((r) => setTimeout(r, 800));
-    const demo = DEMO_ACCOUNTS.find(
-      (a) => a.email.toLowerCase() === email.toLowerCase() && a.password === password
-    );
-    if (demo) {
-      const { password: _, ...userData } = demo;
+    try {
+      const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
+      const { token: jwtToken, user: userData } = res.data;
+      
+      setToken(jwtToken);
       setUser(userData);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
+      
+      await AsyncStorage.setItem(TOKEN_KEY, jwtToken);
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
+      
       return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.response?.data?.message || "Login failed" };
     }
-    const stored = await AsyncStorage.getItem(USER_KEY + "_db_" + email.toLowerCase());
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed.password === password) {
-        const { password: _, ...userData } = parsed;
-        setUser(userData);
-        await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
-        return { success: true };
-      }
-    }
-    return { success: false, error: "Invalid email or password" };
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string, role: UserRole) => {
-    await new Promise((r) => setTimeout(r, 1000));
-    const existing = await AsyncStorage.getItem(USER_KEY + "_db_" + email.toLowerCase());
-    if (existing) return { success: false, error: "Email already in use" };
-    const newUser: User & { password: string } = {
-      id: Date.now().toString() + Math.random().toString(36).slice(2),
-      name,
-      email,
-      password,
-      role,
-      avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-      bio: role === "seller" ? "New seller on Vanik" : "Shopping enthusiast on Vanik",
-      followers: 0,
-      following: 0,
-      joinedAt: new Date().toLocaleDateString("en-IN", { month: "short", year: "numeric" }),
-    };
-    await AsyncStorage.setItem(USER_KEY + "_db_" + email.toLowerCase(), JSON.stringify(newUser));
-    const { password: _, ...userData } = newUser;
-    setUser(userData);
-    await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
-    return { success: true };
-  }, []);
-
-<<<<<<< Updated upstream
-=======
-  /** Send a mock OTP — always "succeeds" */
-  const sendOTP = useCallback(async (phone: string) => {
-    await new Promise((r) => setTimeout(r, 600));
-    // Store the phone so verifyOTP knows what we're verifying
-    await AsyncStorage.setItem(OTP_KEY, phone);
-    return { success: true };
-  }, []);
-
-  /** Verify OTP — accepts "1234" as valid code. If user exists, logs in; else marks as new user */
-  const verifyOTP = useCallback(async (phone: string, otp: string, name?: string, role?: UserRole) => {
-    await new Promise((r) => setTimeout(r, 800));
-
-    if (otp !== "1234") {
-      return { success: false, error: "Invalid OTP. Try 1234" };
-    }
-
-    // Check if demo account matches
-    const demo = DEMO_ACCOUNTS.find((a) => a.phone === phone);
-    if (demo) {
-      const { password: _, ...userData } = demo;
-      setUser(userData);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
-      return { success: true, isNewUser: false };
-    }
-
-    // Check if we have a stored user with this phone
-    const storedKey = USER_KEY + "_phone_" + phone;
-    const stored = await AsyncStorage.getItem(storedKey);
-    if (stored) {
-      const userData = JSON.parse(stored);
-      setUser(userData);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
-      return { success: true, isNewUser: false };
-    }
-
-    // New user — if name and role provided, create account
-    if (name && role) {
-      const newUser: User = {
-        id: Date.now().toString() + Math.random().toString(36).slice(2),
-        name,
-        email: "",
-        phone,
-        role,
-        avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-        bio: role === "seller" ? "New seller on Vanik" : "Shopping enthusiast on Vanik",
-        followers: 0,
-        following: 0,
-        joinedAt: new Date().toLocaleDateString("en-IN", { month: "short", year: "numeric" }),
-      };
-      await AsyncStorage.setItem(storedKey, JSON.stringify(newUser));
-      setUser(newUser);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(newUser));
-      return { success: true, isNewUser: false };
-    }
-
-    // New user but no name/role yet — tell the caller
-    return { success: true, isNewUser: true };
-  }, []);
-  
-  const loginWithGoogle = useCallback(async () => {
     try {
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      const userDetails = userInfo.data?.user || userInfo.user;
-
-      if (!userDetails) {
-        throw new Error("Could not get user details");
-      }
-
-      const googleUser: User = {
-        id: "google_" + userDetails.id,
-        name: userDetails.name || "Google User",
-        email: userDetails.email,
-        role: "buyer",
-        avatar: userDetails.photo || "https://i.pravatar.cc/150?img=12",
-        bio: "Authenticated via Google",
-        followers: 0,
-        following: 0,
-        joinedAt: new Date().toLocaleDateString("en-IN", { month: "short", year: "numeric" }),
-      };
+      const res = await axios.post(`${API_URL}/api/auth/register`, { name, email, password, role });
+      const { token: jwtToken, user: userData } = res.data;
       
-      setUser(googleUser);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(googleUser));
+      setToken(jwtToken);
+      setUser(userData);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
+      
+      await AsyncStorage.setItem(TOKEN_KEY, jwtToken);
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
+      
       return { success: true };
     } catch (error: any) {
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        return { success: false, error: 'User cancelled the login flow' };
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        return { success: false, error: 'Sign in is in progress already' };
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        return { success: false, error: 'Play services not available or outdated' };
-      } else {
-        return { success: false, error: error.message || 'An error occurred during Google login' };
-      }
+      return { success: false, error: error.response?.data?.message || "Registration failed" };
     }
   }, []);
 
->>>>>>> Stashed changes
+  const loginWithGoogle = useCallback(async () => {
+    if (Platform.OS === 'web') {
+      // On web, we cannot use the native Google SDK.
+      // Instead, we'll show a message. In production, you'd use Google Identity Services.
+      return { success: false, error: 'Google Sign-In is available on the mobile app. Please use email/password login on web.' };
+    }
+
+    // Native Google Sign-In
+    try {
+      if (!GoogleSignin) {
+        return { success: false, error: 'Google Sign-In is not configured' };
+      }
+
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.data?.idToken || (userInfo as any).idToken;
+
+      if (!idToken) throw new Error("Could not get Google ID Token");
+
+      const res = await axios.post(`${API_URL}/api/auth/google/mobile`, { idToken });
+      const { token: jwtToken, user: userData } = res.data;
+      
+      setToken(jwtToken);
+      setUser(userData);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
+      
+      await AsyncStorage.setItem(TOKEN_KEY, jwtToken);
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error(error);
+      return { success: false, error: error.response?.data?.message || 'Google login failed' };
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     setUser(null);
+    setToken(null);
+    delete axios.defaults.headers.common['Authorization'];
     await AsyncStorage.removeItem(USER_KEY);
+    await AsyncStorage.removeItem(TOKEN_KEY);
+    if (Platform.OS !== 'web' && GoogleSignin) {
+      await GoogleSignin.signOut().catch(() => {});
+    }
   }, []);
 
   const updateUser = useCallback((updates: Partial<User>) => {
@@ -242,11 +168,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-<<<<<<< Updated upstream
-    <AuthContext.Provider value={{ user, isLoading, isLoggedIn: !!user, login, register, logout, updateUser }}>
-=======
-    <AuthContext.Provider value={{ user, isLoading, isLoggedIn: !!user, login, register, sendOTP, verifyOTP, loginWithGoogle, logout, updateUser }}>
->>>>>>> Stashed changes
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      isLoggedIn: !!user, 
+      token,
+      login, 
+      register, 
+      loginWithGoogle, 
+      logout, 
+      updateUser 
+    }}>
       {children}
     </AuthContext.Provider>
   );

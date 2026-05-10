@@ -24,11 +24,7 @@ import { useColors } from "@/hooks/useColors";
 export default function LoginScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-<<<<<<< Updated upstream
-  const { login } = useAuth();
-=======
-  const { login, sendOTP, loginWithGoogle } = useAuth();
->>>>>>> Stashed changes
+  const { login, loginWithGoogle } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,18 +55,6 @@ export default function LoginScreen() {
     }
   };
 
-<<<<<<< Updated upstream
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
-
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-          {/* Header */}
-          <View style={[styles.header, { paddingTop: topPad + 16 }]}>
-            <Pressable style={[styles.backBtn, { backgroundColor: colors.muted }]} onPress={() => router.back()}>
-              <Feather name="arrow-left" size={20} color={colors.foreground} />
-=======
   const handleGoogleLogin = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLoading(true);
@@ -82,248 +66,19 @@ export default function LoginScreen() {
       router.replace("/(tabs)");
     } else {
       setError(res.error || "Google login failed");
-      shake();
     }
   };
 
-  const topPad = Platform.OS === "web" ? 40 : insets.top;
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={colors.gradientDark as any}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
-
-      {/* Decorative circles */}
-      <View style={[styles.circle1, { backgroundColor: colors.primary + "15" }]} />
-      <View style={[styles.circle2, { backgroundColor: colors.secondary + "10" }]} />
-      <View style={[styles.circle3, { backgroundColor: colors.primary + "08" }]} />
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scroll, { paddingTop: topPad + 20 }]}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Back */}
-          <Pressable
-            style={[styles.backBtn, { backgroundColor: "rgba(255,255,255,0.08)" }]}
-            onPress={() => router.back()}
-          >
-            <Feather name="arrow-left" size={20} color="#fff" />
-          </Pressable>
-
-          {/* Logo */}
-          <View style={styles.logoSection}>
-            <View style={[styles.logoIcon, { backgroundColor: colors.primary }]}>
-              <Text style={styles.logoV}>V</Text>
-            </View>
-            <Text style={styles.logoText}>
-              <Text style={{ color: colors.primary }}>V</Text>
-              <Text style={{ color: "#fff" }}>anik</Text>
-            </Text>
-            <Text style={[styles.tagline, { color: "rgba(255,255,255,0.5)" }]}>
-              Discover · Shop · Earn
-            </Text>
-          </View>
-
-          {/* Card */}
-          <Animated.View
-            style={[
-              styles.card,
-              {
-                backgroundColor: colors.glass,
-                borderColor: colors.glassBorder,
-                transform: [{ translateX: shakeAnim }],
-              },
-            ]}
-          >
-            {/* Mode tabs */}
-            <View style={[styles.modeRow, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
-              <Pressable
-                style={[styles.modeTab, mode === "otp" && { backgroundColor: colors.primary }]}
-                onPress={() => mode !== "otp" && switchMode("otp")}
-              >
-                <Feather name="smartphone" size={14} color={mode === "otp" ? "#fff" : "rgba(255,255,255,0.5)"} />
-                <Text style={[styles.modeText, { color: mode === "otp" ? "#fff" : "rgba(255,255,255,0.5)" }]}>
-                  Phone
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modeTab, mode === "email" && { backgroundColor: colors.primary }]}
-                onPress={() => mode !== "email" && switchMode("email")}
-              >
-                <Feather name="mail" size={14} color={mode === "email" ? "#fff" : "rgba(255,255,255,0.5)"} />
-                <Text style={[styles.modeText, { color: mode === "email" ? "#fff" : "rgba(255,255,255,0.5)" }]}>
-                  Email
-                </Text>
-              </Pressable>
-            </View>
-
-            <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-              {mode === "otp" ? (
-                <>
-                  <Text style={styles.cardTitle}>Welcome back</Text>
-                  <Text style={[styles.cardSub, { color: "rgba(255,255,255,0.55)" }]}>
-                    Enter your phone number to continue
-                  </Text>
-
-                  {/* Phone input */}
-                  <View style={[styles.inputGroup, { borderColor: error ? "#FF3B5C" : "rgba(255,255,255,0.12)" }]}>
-                    <View style={styles.countryCode}>
-                      <Text style={styles.flag}>🇮🇳</Text>
-                      <Text style={styles.codeText}>+91</Text>
-                      <Feather name="chevron-down" size={12} color="rgba(255,255,255,0.4)" />
-                    </View>
-                    <View style={[styles.divider, { backgroundColor: "rgba(255,255,255,0.12)" }]} />
-                    <TextInput
-                      style={styles.phoneInput}
-                      placeholder="Phone number"
-                      placeholderTextColor="rgba(255,255,255,0.3)"
-                      keyboardType="phone-pad"
-                      maxLength={10}
-                      value={phone}
-                      onChangeText={(t) => { setPhone(t.replace(/\D/g, "")); setError(""); }}
-                    />
-                  </View>
-
-                  {/* Submit */}
-                  <Pressable
-                    style={[styles.submitBtn, { opacity: loading ? 0.7 : 1 }]}
-                    onPress={handleOTPSubmit}
-                    disabled={loading}
-                  >
-                    <LinearGradient
-                      colors={[colors.primary, colors.accent]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.submitGradient}
-                    >
-                      {loading ? (
-                        <Text style={styles.submitText}>Sending OTP...</Text>
-                      ) : (
-                        <>
-                          <Text style={styles.submitText}>Get OTP</Text>
-                          <Feather name="arrow-right" size={18} color="#fff" />
-                        </>
-                      )}
-                    </LinearGradient>
-                  </Pressable>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.cardTitle}>Sign in with Email</Text>
-                  <Text style={[styles.cardSub, { color: "rgba(255,255,255,0.55)" }]}>
-                    Use your email and password
-                  </Text>
-
-                  {/* Email */}
-                  <View style={[styles.inputWrap, { borderColor: error ? "#FF3B5C" : "rgba(255,255,255,0.12)" }]}>
-                    <Feather name="mail" size={16} color="rgba(255,255,255,0.4)" />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Email address"
-                      placeholderTextColor="rgba(255,255,255,0.3)"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      value={email}
-                      onChangeText={(t) => { setEmail(t); setError(""); }}
-                    />
-                  </View>
-
-                  {/* Password */}
-                  <View style={[styles.inputWrap, { borderColor: error ? "#FF3B5C" : "rgba(255,255,255,0.12)" }]}>
-                    <Feather name="lock" size={16} color="rgba(255,255,255,0.4)" />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Password"
-                      placeholderTextColor="rgba(255,255,255,0.3)"
-                      secureTextEntry={!showPass}
-                      value={password}
-                      onChangeText={(t) => { setPassword(t); setError(""); }}
-                    />
-                    <Pressable onPress={() => setShowPass(!showPass)}>
-                      <Feather name={showPass ? "eye-off" : "eye"} size={16} color="rgba(255,255,255,0.4)" />
-                    </Pressable>
-                  </View>
-
-                  {/* Submit */}
-                  <Pressable
-                    style={[styles.submitBtn, { opacity: loading ? 0.7 : 1 }]}
-                    onPress={handleEmailSubmit}
-                    disabled={loading}
-                  >
-                    <LinearGradient
-                      colors={[colors.primary, colors.accent]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.submitGradient}
-                    >
-                      {loading ? (
-                        <Text style={styles.submitText}>Signing in...</Text>
-                      ) : (
-                        <>
-                          <Text style={styles.submitText}>Sign In</Text>
-                          <Feather name="arrow-right" size={18} color="#fff" />
-                        </>
-                      )}
-                    </LinearGradient>
-                  </Pressable>
-                </>
-              )}
-
-              {/* Error */}
-              {error !== "" && (
-                <View style={styles.errorRow}>
-                  <Feather name="alert-circle" size={14} color="#FF3B5C" />
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
-              )}
-            </Animated.View>
-
-            {/* OR Divider */}
-            <View style={styles.orRow}>
-              <View style={[styles.orLine, { backgroundColor: "rgba(255,255,255,0.1)" }]} />
-              <Text style={[styles.orText, { color: "rgba(255,255,255,0.3)" }]}>OR</Text>
-              <View style={[styles.orLine, { backgroundColor: "rgba(255,255,255,0.1)" }]} />
-            </View>
-
-            {/* Google Login */}
-            <Pressable
-              style={[styles.googleBtn, { backgroundColor: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.12)" }]}
-              onPress={handleGoogleLogin}
-              disabled={loading}
-            >
-              <View style={styles.googleIconWrap}>
-                <Text style={{ fontSize: 18 }}>G</Text>
-              </View>
-              <Text style={styles.googleBtnText}>Continue with Google</Text>
-            </Pressable>
-
-            {/* Demo hint */}
-            <View style={[styles.demoHint, { backgroundColor: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)" }]}>
-              <Feather name="info" size={13} color={colors.primary} />
-              <Text style={[styles.demoText, { color: "rgba(255,255,255,0.5)" }]}>
-                Demo: OTP is <Text style={{ color: colors.primary, fontWeight: "800" }}>1234</Text>
-                {"\n"}Email: buyer@vanik.in / seller@vanik.in (pass: demo123)
-              </Text>
-            </View>
-          </Animated.View>
-
-          {/* Register link */}
-          <View style={styles.registerRow}>
-            <Text style={[styles.registerText, { color: "rgba(255,255,255,0.45)" }]}>
-              Don't have an account?
-            </Text>
-            <Pressable onPress={() => router.push("/auth/register")}>
-              <Text style={[styles.registerLink, { color: colors.primary }]}> Create Account</Text>
->>>>>>> Stashed changes
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+          {/* Header */}
+          <View style={[styles.header, { paddingTop: topPad + 16 }]}>
+            <Pressable style={[styles.backBtn, { backgroundColor: colors.muted }]} onPress={() => router.back()}>
+              <Feather name="arrow-left" size={20} color={colors.foreground} />
             </Pressable>
           </View>
 
@@ -423,6 +178,18 @@ export default function LoginScreen() {
               <View style={[styles.line, { backgroundColor: colors.border }]} />
             </View>
 
+            {/* Google Login */}
+            <Pressable
+              style={[styles.googleBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={handleGoogleLogin}
+              disabled={loading}
+            >
+              <View style={styles.googleIconWrap}>
+                <Text style={{ fontSize: 18 }}>G</Text>
+              </View>
+              <Text style={[styles.googleBtnText, { color: colors.foreground }]}>Continue with Google</Text>
+            </Pressable>
+
             {/* Register link */}
             <View style={styles.registerRow}>
               <Text style={[styles.registerText, { color: colors.mutedForeground }]}>Don't have an account?</Text>
@@ -464,9 +231,6 @@ const styles = StyleSheet.create({
   dividerText: { fontSize: 13 },
   registerRow: { flexDirection: "row", justifyContent: "center", gap: 6, paddingBottom: 24 },
   registerText: { fontSize: 14 },
-<<<<<<< Updated upstream
-  registerLink: { fontSize: 14, fontWeight: "700" },
-=======
   registerLink: { fontSize: 14, fontWeight: "800" },
 
   /* Terms */
@@ -478,6 +242,5 @@ const styles = StyleSheet.create({
   orText: { fontSize: 11, fontWeight: "800" },
   googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, paddingVertical: 14, borderRadius: 16, borderWidth: 1 },
   googleIconWrap: { width: 24, height: 24, borderRadius: 12, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
-  googleBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
->>>>>>> Stashed changes
+  googleBtnText: { fontSize: 15, fontWeight: "700" },
 });

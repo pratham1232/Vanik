@@ -17,11 +17,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
 import { CartProvider } from "@/context/CartContext";
-<<<<<<< Updated upstream
-=======
-import { CommunityProvider } from "@/context/CommunityContext";
 import { ChatProvider } from "@/context/ChatContext";
->>>>>>> Stashed changes
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ThemedApp } from "@/components/ThemedApp";
 import AppIntro from "@/components/AppIntro";
@@ -55,14 +51,6 @@ export default function RootLayout() {
             <AuthProvider>
               <AppProvider>
                 <CartProvider>
-<<<<<<< Updated upstream
-                  <GestureHandlerRootView style={{ flex: 1 }}>
-                    <KeyboardProvider>
-                      <ThemedApp />
-                    </KeyboardProvider>
-                  </GestureHandlerRootView>
-=======
-                  <CommunityProvider>
                     <ChatProvider>
                       <GestureHandlerRootView style={{ flex: 1 }}>
                         <KeyboardProvider>
@@ -71,8 +59,6 @@ export default function RootLayout() {
                         </KeyboardProvider>
                       </GestureHandlerRootView>
                     </ChatProvider>
-                  </CommunityProvider>
->>>>>>> Stashed changes
                 </CartProvider>
               </AppProvider>
             </AuthProvider>

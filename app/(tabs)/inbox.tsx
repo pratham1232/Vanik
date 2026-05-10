@@ -19,7 +19,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
-import { useCommunity } from "@/context/CommunityContext";
 import { useChat } from "@/context/ChatContext";
 import { STATUSES, STORIES } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
@@ -217,7 +216,8 @@ export default function InboxScreen() {
   const colors   = useColors();
   const insets   = useSafeAreaInsets();
   const { user } = useAuth();
-  const { friends, communities } = useCommunity();
+  const friends: any[] = [];
+  const communities: any[] = [];
   const { threads } = useChat();
   const isSeller = user?.role === "seller";
 
@@ -556,7 +556,7 @@ export default function InboxScreen() {
                 </View>
                 <Text style={[styles.addFriendText, { color: colors.primary }]}>Add Friend</Text>
               </Pressable>
-              {friends.map((f) => (
+              {friends.map((f: any) => (
                 <Pressable key={f.id} style={styles.friendCol} onPress={() => router.push(`/chat/${f.id}`)}>
                   <View style={styles.friendAvatarWrap}>
                     <Image source={{ uri: f.avatar }} style={styles.friendAvatar} />
@@ -572,7 +572,7 @@ export default function InboxScreen() {
             <View style={[styles.sectionHeader, { marginTop: 20 }]}>
               <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>DISCOVER COMMUNITIES</Text>
             </View>
-            {communities.map((c) => (
+            {communities.map((c: any) => (
               <Pressable key={c.id} style={[styles.communityCard, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
                 <Image source={{ uri: c.avatar }} style={styles.communityAvatar} />
                 <View style={{ flex: 1, gap: 2 }}>

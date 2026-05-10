@@ -83,7 +83,7 @@ export default function RegisterScreen() {
       router.replace("/(tabs)");
     } else {
       setError(res.error || "Google login failed");
-      shake();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -151,53 +151,23 @@ export default function RegisterScreen() {
                         <Feather name={showPw ? "eye-off" : "eye"} size={18} color={colors.mutedForeground} />
                       </Pressable>
                     </View>
-<<<<<<< Updated upstream
-=======
-                    {role === "seller" && (
-                      <View style={[styles.roleCheck, { backgroundColor: colors.primary }]}>
-                        <Feather name="check" size={14} color="#fff" />
-                      </View>
-                    )}
-                  </Pressable>
-
-                  <Pressable style={styles.continueBtn} onPress={goToDetails}>
-                    <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.continueGrad}>
-                      <Text style={styles.continueText}>Continue as {role === "buyer" ? "Buyer" : "Seller"}</Text>
-                      <Feather name="arrow-right" size={18} color="#fff" />
-                    </LinearGradient>
-                  </Pressable>
-
-                  {/* OR Divider */}
+                  </View>
                   <View style={styles.orRow}>
-                    <View style={[styles.orLine, { backgroundColor: "rgba(255,255,255,0.1)" }]} />
-                    <Text style={[styles.orText, { color: "rgba(255,255,255,0.3)" }]}>OR</Text>
-                    <View style={[styles.orLine, { backgroundColor: "rgba(255,255,255,0.1)" }]} />
+                    <View style={[styles.orLine, { backgroundColor: colors.border }]} />
+                    <Text style={[styles.orText, { color: colors.mutedForeground }]}>OR</Text>
+                    <View style={[styles.orLine, { backgroundColor: colors.border }]} />
                   </View>
 
-                  {/* Google Login */}
                   <Pressable
-                    style={[styles.googleBtn, { backgroundColor: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.12)" }]}
+                    style={[styles.googleBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
                     onPress={handleGoogleLogin}
                     disabled={loading}
                   >
                     <View style={styles.googleIconWrap}>
                       <Text style={{ fontSize: 18 }}>G</Text>
                     </View>
-                    <Text style={styles.googleBtnText}>Sign up with Google</Text>
+                    <Text style={[styles.googleBtnText, { color: colors.foreground }]}>Sign up with Google</Text>
                   </Pressable>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.cardTitle}>Create your account</Text>
-                  <Text style={[styles.cardSub, { color: "rgba(255,255,255,0.55)" }]}>
-                    Setting up as a <Text style={{ color: colors.primary, fontWeight: "800" }}>{role}</Text>
-                  </Text>
-
-                  <View style={[styles.inputWrap, { borderColor: "rgba(255,255,255,0.12)" }]}>
-                    <Feather name="user" size={16} color="rgba(255,255,255,0.4)" />
-                    <TextInput style={styles.input} placeholder={role === "seller" ? "Store name" : "Full name"} placeholderTextColor="rgba(255,255,255,0.3)" value={name} onChangeText={(t) => { setName(t); setError(""); }} />
->>>>>>> Stashed changes
-                  </View>
 
                   <View style={styles.fieldGroup}>
                     <Text style={[styles.label, { color: colors.foreground }]}>Confirm Password</Text>
@@ -351,9 +321,6 @@ const styles = StyleSheet.create({
   perkText: { fontSize: 13 },
   loginRow: { flexDirection: "row", justifyContent: "center", gap: 6, paddingBottom: 24 },
   loginText: { fontSize: 14 },
-<<<<<<< Updated upstream
-  loginLink: { fontSize: 14, fontWeight: "700" },
-=======
   loginLink: { fontSize: 14, fontWeight: "800" },
 
   /* Google */
@@ -362,6 +329,5 @@ const styles = StyleSheet.create({
   orText: { fontSize: 11, fontWeight: "800" },
   googleBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, paddingVertical: 14, borderRadius: 16, borderWidth: 1 },
   googleIconWrap: { width: 24, height: 24, borderRadius: 12, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
-  googleBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
->>>>>>> Stashed changes
+  googleBtnText: { fontSize: 15, fontWeight: "700" },
 });

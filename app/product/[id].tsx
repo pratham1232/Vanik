@@ -1,7 +1,9 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "@/constants/api";
 import {
   Image,
   Platform,
@@ -27,19 +29,36 @@ export default function ProductDetailScreen() {
   const { addItem, count } = useCart();
   const { toggleWishlist, isWishlisted, toggleFollow, isFollowing } = useApp();
 
-  const product = PRODUCTS.find((p) => p.id === id) ?? PRODUCTS[0];
-  const seller = SELLERS.find((s) => s.id === product.sellerId) ?? SELLERS[0];
-  const liked = isWishlisted(product.id);
-  const following = isFollowing(seller.id);
+  const [product, setProduct] = useState<any>(null);
+  const [seller, setSeller] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const liked = isWishlisted(id as string);
+  const following = seller ? isFollowing(seller._id || seller.id) : false;
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/products/${id}`);
+        setProduct(res.data);
+        setSeller(res.data.seller);
+      } catch (err) {
+        console.error("Failed to fetch product", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
 
   const [addedFeedback, setAddedFeedback] = useState(false);
   const btnScale = useSharedValue(1);
   const btnStyle = useAnimatedStyle(() => ({ transform: [{ scale: btnScale.value }] }));
 
   const handleAddCart = () => {
+    if (!product) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     btnScale.value = withSpring(0.93, {}, () => { btnScale.value = withSpring(1); });
-    addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerName: product.sellerName });
+    addItem({ id: product._id || product.id, title: product.title, price: product.price, image: product.images?.[0] || product.image, sellerName: product.seller?.name || product.sellerName });
     setAddedFeedback(true);
     setTimeout(() => setAddedFeedback(false), 1800);
   };
@@ -55,6 +74,14 @@ export default function ProductDetailScreen() {
     "✅ Verified by Vanik AI for authenticity.",
     "🌟 Top choice for \"Minimalist Style\" lovers."
   ];
+
+  if (loading || !product) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }]}>
+        <Text style={{ color: colors.mutedForeground }}>Loading Premium Details...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -84,7 +111,7 @@ export default function ProductDetailScreen() {
           </Pressable>
           <Pressable
             style={[styles.iconBtn, { backgroundColor: "rgba(0,0,0,0.3)" }]}
-            onPress={() => toggleWishlist(product.id)}
+            onPress={() => toggleWishlist(product._id || product.id)}
           >
             <Feather name="heart" size={20} color={liked ? "#FF3B5C" : "#fff"} />
           </Pressable>
@@ -94,7 +121,7 @@ export default function ProductDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: bottomPad + 100 }}>
         {/* Product Image */}
         <View style={styles.imageWrap}>
-          <Image source={product.image} style={styles.productImage} resizeMode="cover" />
+          <Image source={{ uri: product.images?.[0] || product.image }} style={styles.productImage} resizeMode="cover" />
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.6)"]}
             style={styles.imageOverlay}
@@ -189,7 +216,7 @@ export default function ProductDetailScreen() {
 
           {/* Seller */}
           <View style={[styles.sellerCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Image source={{ uri: seller.avatar }} style={styles.sellerAvatar} />
+            <Image source={{ uri: seller?.avatar || "https://i.pravatar.cc/150" }} style={styles.sellerAvatar} />
             <View style={{ flex: 1 }}>
               <View style={styles.sellerNameRow}>
                 <Text style={[styles.sellerName, { color: colors.foreground }]}>{seller.name}</Text>
@@ -199,7 +226,7 @@ export default function ProductDetailScreen() {
             </View>
             <Pressable
               style={[styles.followBtn, { backgroundColor: following ? colors.muted : colors.primary, borderColor: following ? colors.border : colors.primary, borderWidth: 1 }]}
-              onPress={() => toggleFollow(seller.id)}
+              onPress={() => toggleFollow(seller._id || seller.id)}
             >
               <Text style={[styles.followBtnText, { color: following ? colors.foreground : "#fff" }]}>
                 {following ? "Following" : "Follow"}

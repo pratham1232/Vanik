@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #050510;
+  --color-surface: #0A0A1F;
+  --color-primary: #8B5CF6;
+  --color-accent: #EC4899;
+  --color-muted: rgba(255, 255, 255, 0.4);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-white font-sans antialiased;
+  }
+}
+
+@utility glass {
+  background-color: rgba(10, 10, 31, 0.2);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@utility aura-top {
+  background: radial-gradient(circle at top, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+}

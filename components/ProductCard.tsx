@@ -19,29 +19,35 @@ export default function ProductCard({ product, width = 160, compact = false }: P
   const colors = useColors();
   const { toggleWishlist, isWishlisted } = useApp();
   const { addItem } = useCart();
-  const scale = useSharedValue(1);
-  const liked = isWishlisted(product.id);
+   const scale = useSharedValue(1);
+  const liked = isWishlisted(product._id || product.id);
 
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const handleWishlist = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     scale.value = withSpring(1.2, {}, () => { scale.value = withSpring(1); });
-    toggleWishlist(product.id);
+    toggleWishlist(product._id || product.id);
   };
 
   const handleAddCart = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    addItem({ id: product.id, title: product.title, price: product.price, image: product.image, sellerName: product.sellerName });
+    addItem({ 
+      id: product._id || product.id, 
+      title: product.title, 
+      price: product.price, 
+      image: product.images?.[0] || product.image, 
+      sellerName: product.seller?.name || product.sellerName 
+    });
   };
 
   return (
     <Pressable
       style={[styles.card, { width, backgroundColor: colors.card, borderColor: colors.border }]}
-      onPress={() => router.push({ pathname: "/product/[id]", params: { id: product.id } })}
+      onPress={() => router.push({ pathname: "/product/[id]", params: { id: product._id || product.id } })}
     >
       <View style={styles.imageContainer}>
-        <Image source={product.image} style={[styles.image, { width, height: compact ? 120 : 150 }]} resizeMode="cover" />
+        <Image source={{ uri: product.images?.[0] || product.image }} style={[styles.image, { width, height: compact ? 120 : 150 }]} resizeMode="cover" />
         {product.discount > 0 && (
           <View style={[styles.discountBadge, { backgroundColor: colors.live }]}>
             <Text style={styles.discountText}>{product.discount}% OFF</Text>

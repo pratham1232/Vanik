@@ -3,7 +3,9 @@ import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "@/constants/api";
 import {
   Image,
   Platform,
@@ -17,6 +19,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ProductCard from "@/components/ProductCard";
+import { ActivityIndicator } from "react-native";
 import { HASHTAGS, PRODUCTS, SELLERS } from "@/data/mockData";
 import { useColors } from "@/hooks/useColors";
 
@@ -41,10 +44,27 @@ export default function ExploreScreen() {
   const [activeTab, setActiveTab] = useState("All");
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
-  const filtered = PRODUCTS.filter((p) =>
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/products`);
+        setProducts(res.data);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const filtered = products.filter((p) =>
     query.length >= 2
       ? p.title.toLowerCase().includes(query.toLowerCase()) ||
-        p.tags.some((t) => t.includes(query.toLowerCase()))
+        (p.tags && p.tags.some((t: string) => t.includes(query.toLowerCase())))
       : activeTab === "All" ||
         (activeTab === "Fashion" && p.category === "Fashion") ||
         (activeTab === "Beauty" && p.category === "Beauty") ||
@@ -235,8 +255,10 @@ export default function ExploreScreen() {
                 <Text style={[styles.seeAll, { color: colors.mutedForeground }]}>{filtered.length} items</Text>
               </View>
               <View style={styles.productsGrid}>
-                {filtered.map((p) => (
-                  <ProductCard key={p.id} product={p} width={170} />
+                {loading ? (
+                  <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
+                ) : filtered.map((p) => (
+                  <ProductCard key={p._id || p.id} product={p} width={170} />
                 ))}
                 {filtered.length === 0 && (
                   <View style={styles.emptyState}>

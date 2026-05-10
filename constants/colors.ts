@@ -21,10 +21,6 @@ const colors = {
     live: "#FF3B5C",
     online: "#10B981",
     gold: "#F59E0B",
-<<<<<<< Updated upstream
-    surface: "#F0EEFF",
-    surfaceHigh: "#E8E0FF",
-=======
     surface: "#F4F0FF",
     surfaceHigh: "#EAE2FF",
     // Premium additions
@@ -41,7 +37,6 @@ const colors = {
     gradientGold: ["#F59E0B", "#D97706", "#B45309"],
     gradientDark: ["#F9FAFB", "#F3F4F6", "#E5E7EB"],
     gradientSurface: ["#FFFFFF", "#F9FAFB"],
->>>>>>> Stashed changes
   },
   dark: {
     text: "#FFFFFF",
@@ -65,10 +60,6 @@ const colors = {
     live: "#FF3B5C",
     online: "#10B981",
     gold: "#F59E0B",
-<<<<<<< Updated upstream
-    surface: "#0F0F20",
-    surfaceHigh: "#1A1A30",
-=======
     surface: "#0A0A1F",
     surfaceHigh: "#12122E",
     // Premium additions
@@ -85,7 +76,6 @@ const colors = {
     gradientGold: ["#F59E0B", "#D97706", "#B45309"],
     gradientDark: ["#050510", "#000000", "#000000"],
     gradientSurface: ["#050510", "#0A0A1F"],
->>>>>>> Stashed changes
   },
   radius: 12,
 };
